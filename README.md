@@ -1,4 +1,4 @@
-# ConsumptionCLI
+# consumptionCLI
 
 ![PyPI - Version](https://img.shields.io/pypi/v/consumptioncli) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/consumptioncli) ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/t/track-44/consumptioncli) ![GitHub repo size](https://img.shields.io/github/repo-size/track-44/consumptioncli) ![PyPI - License](https://img.shields.io/pypi/l/consumptioncli) 
 
