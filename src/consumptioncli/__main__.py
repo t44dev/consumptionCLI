@@ -1,18 +1,21 @@
+# stdlib
+from sys import exit, stderr
 from argparse import ArgumentError
-from .parsers import MainParser
+
+# consumption
+from consumptioncli.parsing import MainParser, BetterNamespace
 
 
-def main():
-    main_parser = MainParser.get()
-    args = main_parser.parse_args()
+def main() -> int:
     try:
-        print(getattr(args, "handler").handle(args))
+        main_parser = MainParser.get()
+        args = main_parser.parse_args(namespace=BetterNamespace())
+        print(getattr(args, "handler")(args))
         return 0
     except ArgumentError as e:
-        main_parser.error(e.message)
-    # except Exception as e:
-    # main_parser.error(f"Unexpected Error: {e}")
+        print(e.message, file=stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
