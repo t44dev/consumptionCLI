@@ -1,6 +1,3 @@
-# stdlib
-
-
 # consumption
 from consumptionbackend.database import (
     PersonnelFieldsRequired,
