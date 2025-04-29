@@ -1,7 +1,10 @@
 # stdlib
 from argparse import Action, ArgumentParser, Namespace
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Sequence
 from typing import Any
+
+# consumption
+from .BetterNamespace import BetterNamespace
 
 _T = Any
 
@@ -19,20 +22,10 @@ class SubStore(Action):
     ) -> None:
         dests = self.dest.split(".")
         dest = dests.pop()
-        current: MutableMapping[str, Any] | Namespace = namespace
+        current: Namespace = namespace
 
         for name in dests:
             if name not in current:
-                if isinstance(current, Namespace):
-                    setattr(current, name, dict())
-                else:
-                    current[name] = dict()
-            if isinstance(current, Namespace):
-                current = getattr(current, name)
-            else:
-                current = current[name]
-
-        if isinstance(current, Namespace):
-            setattr(current, dest, values)
-        else:
-            current[dest] = values
+                setattr(current, name, BetterNamespace())
+            current = getattr(current, name)
+        setattr(current, dest, values)
