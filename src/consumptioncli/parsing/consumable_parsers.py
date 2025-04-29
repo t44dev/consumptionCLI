@@ -2,7 +2,8 @@
 from argparse import ArgumentParser
 
 # consumption
-from .parsing import ParserBase
+from .BetterNamespace import BetterNamespace
+from .parsing import ParserBase, QueryType
 from consumptioncli.commands import ConsumableCommandHandler
 
 
@@ -22,16 +23,20 @@ class ConsumableNewParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        parser.set_defaults(handler=ConsumableCommandHandler.new)
-        # TODO: Apply args
+        parser.set_defaults(handler=ConsumableCommandHandler.new, new=BetterNamespace())
+        cls.consumable_fields(parser, "new", QueryType.NEW)
 
 
 class ConsumableListParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        parser.set_defaults(handler=ConsumableCommandHandler.list)
-        # TODO: Where args
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.list, where=BetterNamespace()
+        )
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Order arguments
 
 
@@ -39,25 +44,31 @@ class ConsumableUpdateParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        parser.set_defaults(handler=ConsumableCommandHandler.update)
+        parser.set_defaults(handler=ConsumableCommandHandler.update, where=BetterNamespace())
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Force update
-        # TODO: Where args
+
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
         ).add_parser(
             "apply",
             aliases=["a"],
         )
-        # TODO: Apply args
+        parser_apply.set_defaults(apply=BetterNamespace())
+        cls.consumable_fields(parser_apply, "apply", QueryType.APPLY, False, False)
 
 
 class ConsumableDeleteParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
+        parser.set_defaults(handler=ConsumableCommandHandler.delete, where=BetterNamespace())
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Force update
-        # TODO: Where args
-        parser.set_defaults(handler=ConsumableCommandHandler.delete)
 
 
 # TODO: Set series

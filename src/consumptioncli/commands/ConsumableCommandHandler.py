@@ -1,10 +1,9 @@
 # consumption
 from consumptionbackend.database import (
     ConsumableFieldsRequired,
-    ConsumableWhereMapping,
     ConsumableApplyMapping,
 )
-from .command_handling import CommandArgumentsBase
+from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
 
 
@@ -12,11 +11,7 @@ class ConsumableNewArguments(CommandArgumentsBase):
     new: ConsumableFieldsRequired
 
 
-class ConsumableWhereArguments(CommandArgumentsBase):
-    where: ConsumableWhereMapping
-
-
-class ConsumableUpdateArguments(ConsumableWhereArguments):
+class ConsumableUpdateArguments(WhereArguments):
     apply: ConsumableApplyMapping
 
 
@@ -29,7 +24,7 @@ class ConsumableCommandHandler:
         return str(consumable)
 
     @classmethod
-    def list(cls, args: ConsumableWhereArguments) -> str:
+    def list(cls, args: WhereArguments) -> str:
         consumables = ConsumableHandler.find(**args["where"])
         return str(consumables)
 
@@ -43,7 +38,7 @@ class ConsumableCommandHandler:
         return str(consumables)
 
     @classmethod
-    def delete(cls, args: ConsumableWhereArguments) -> str:
+    def delete(cls, args: WhereArguments) -> str:
         # TODO: Confirm delete for multiple hits
         # TODO: How do we know how many are deleted?
         ConsumableHandler.delete(**args["where"])

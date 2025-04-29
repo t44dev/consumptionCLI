@@ -1,10 +1,9 @@
 # consumption
 from consumptionbackend.database import (
     PersonnelFieldsRequired,
-    PersonnelWhereMapping,
     PersonnelApplyMapping,
 )
-from .command_handling import CommandArgumentsBase
+from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import PersonnelHandler
 
 
@@ -12,11 +11,7 @@ class PersonnelNewArguments(CommandArgumentsBase):
     new: PersonnelFieldsRequired
 
 
-class PersonnelWhereArguments(CommandArgumentsBase):
-    where: PersonnelWhereMapping
-
-
-class PersonnelUpdateArguments(PersonnelWhereArguments):
+class PersonnelUpdateArguments(WhereArguments):
     apply: PersonnelApplyMapping
 
 
@@ -29,7 +24,7 @@ class PersonnelCommandHandler:
         return str(consumable)
 
     @classmethod
-    def list(cls, args: PersonnelWhereArguments) -> str:
+    def list(cls, args: WhereArguments) -> str:
         consumables = PersonnelHandler.find(**args["where"])
         return str(consumables)
 
@@ -43,7 +38,7 @@ class PersonnelCommandHandler:
         return str(consumables)
 
     @classmethod
-    def delete(cls, args: PersonnelWhereArguments) -> str:
+    def delete(cls, args: WhereArguments) -> str:
         # TODO: Confirm delete for multiple hits
         # TODO: How do we know how many are deleted?
         PersonnelHandler.delete(**args["where"])

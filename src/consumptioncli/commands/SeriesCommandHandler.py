@@ -1,10 +1,9 @@
 # consumption
 from consumptionbackend.database import (
     SeriesFieldsRequired,
-    SeriesWhereMapping,
     SeriesApplyMapping,
 )
-from .command_handling import CommandArgumentsBase
+from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import SeriesHandler
 
 
@@ -12,11 +11,7 @@ class SeriesNewArguments(CommandArgumentsBase):
     new: SeriesFieldsRequired
 
 
-class SeriesWhereArguments(CommandArgumentsBase):
-    where: SeriesWhereMapping
-
-
-class SeriesUpdateArguments(SeriesWhereArguments):
+class SeriesUpdateArguments(WhereArguments):
     apply: SeriesApplyMapping
 
 
@@ -29,7 +24,7 @@ class SeriesCommandHandler:
         return str(consumable)
 
     @classmethod
-    def list(cls, args: SeriesWhereArguments) -> str:
+    def list(cls, args: WhereArguments) -> str:
         consumables = SeriesHandler.find(**args["where"])
         return str(consumables)
 
@@ -43,7 +38,7 @@ class SeriesCommandHandler:
         return str(consumables)
 
     @classmethod
-    def delete(cls, args: SeriesWhereArguments) -> str:
+    def delete(cls, args: WhereArguments) -> str:
         # TODO: Confirm delete for multiple hits
         # TODO: How do we know how many are deleted?
         SeriesHandler.delete(**args["where"])
