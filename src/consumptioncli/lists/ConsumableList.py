@@ -56,8 +56,8 @@ class ConsumableList(EntityListBase):
                     else None
                 ),
                 (
-                    c.start_date.strftime(self.date_format)
-                    if c.start_date is not None
+                    c.end_date.strftime(self.date_format)
+                    if c.end_date is not None
                     else None
                 ),
             ]
