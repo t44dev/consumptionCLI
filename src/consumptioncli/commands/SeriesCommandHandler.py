@@ -3,6 +3,7 @@ from consumptionbackend.database import (
     SeriesFieldsRequired,
     SeriesApplyMapping,
 )
+from consumptioncli.lists import SeriesList
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import SeriesHandler
 
@@ -20,13 +21,15 @@ class SeriesCommandHandler:
     @classmethod
     def new(cls, args: SeriesNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
-        consumable = SeriesHandler.new(**args["new"])
-        return str(consumable)
+        series = SeriesHandler.new(**args["new"])
+        series_list = SeriesList([series])
+        return str(series_list)
 
     @classmethod
     def list(cls, args: WhereArguments) -> str:
-        consumables = SeriesHandler.find(**args["where"])
-        return str(consumables)
+        series = SeriesHandler.find(**args["where"])
+        series_list = SeriesList(series)
+        return str(series_list)
 
     @classmethod
     def update(cls, args: SeriesUpdateArguments) -> str:
@@ -34,8 +37,9 @@ class SeriesCommandHandler:
         # TODO: Confirm update for multiple hits
         # TODO: What happens if none are found
         # TODO: Tagging
-        consumables = SeriesHandler.update(args["where"], args["apply"])
-        return str(consumables)
+        series = SeriesHandler.update(args["where"], args["apply"])
+        series_list = SeriesList(series)
+        return str(series_list)
 
     @classmethod
     def delete(cls, args: WhereArguments) -> str:

@@ -22,12 +22,14 @@ class ConsumableCommandHandler:
     def new(cls, args: ConsumableNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
         consumable = ConsumableHandler.new(**args["new"])
-        return str(ConsumableList([consumable], args["date_format"]))
+        consumables_list = ConsumableList([consumable], args["date_format"])
+        return str(consumables_list)
 
     @classmethod
     def list(cls, args: WhereArguments) -> str:
         consumables = ConsumableHandler.find(**args["where"])
-        return str(consumables)
+        consumables_list = ConsumableList(consumables, args["date_format"])
+        return str(consumables_list)
 
     @classmethod
     def update(cls, args: ConsumableUpdateArguments) -> str:
@@ -36,7 +38,8 @@ class ConsumableCommandHandler:
         # TODO: What happens if none are found
         # TODO: Tagging
         consumables = ConsumableHandler.update(args["where"], args["apply"])
-        return str(consumables)
+        consumables_list = ConsumableList(consumables, args["date_format"])
+        return str(consumables_list)
 
     @classmethod
     def delete(cls, args: WhereArguments) -> str:

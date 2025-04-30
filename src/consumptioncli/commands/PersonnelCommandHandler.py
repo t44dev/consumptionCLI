@@ -3,6 +3,7 @@ from consumptionbackend.database import (
     PersonnelFieldsRequired,
     PersonnelApplyMapping,
 )
+from consumptioncli.lists import PersonnelList
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import PersonnelHandler
 
@@ -20,13 +21,15 @@ class PersonnelCommandHandler:
     @classmethod
     def new(cls, args: PersonnelNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
-        consumable = PersonnelHandler.new(**args["new"])
-        return str(consumable)
+        personnel = PersonnelHandler.new(**args["new"])
+        personnel_list = PersonnelList([personnel])
+        return str(personnel_list)
 
     @classmethod
     def list(cls, args: WhereArguments) -> str:
-        consumables = PersonnelHandler.find(**args["where"])
-        return str(consumables)
+        personnel = PersonnelHandler.find(**args["where"])
+        personnel_list = PersonnelList(personnel)
+        return str(personnel_list)
 
     @classmethod
     def update(cls, args: PersonnelUpdateArguments) -> str:
@@ -34,8 +37,9 @@ class PersonnelCommandHandler:
         # TODO: Confirm update for multiple hits
         # TODO: What happens if none are found
         # TODO: Tagging
-        consumables = PersonnelHandler.update(args["where"], args["apply"])
-        return str(consumables)
+        personnel = PersonnelHandler.update(args["where"], args["apply"])
+        personnel_list = PersonnelList(personnel)
+        return str(personnel_list)
 
     @classmethod
     def delete(cls, args: WhereArguments) -> str:
