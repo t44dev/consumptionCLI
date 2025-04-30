@@ -35,7 +35,7 @@ class ConsumableListParser(ParserBase):
             handler=ConsumableCommandHandler.list, where=BetterNamespace()
         )
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
-        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Order arguments
 
@@ -44,9 +44,12 @@ class ConsumableUpdateParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        parser.set_defaults(handler=ConsumableCommandHandler.update, where=BetterNamespace())
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.update,
+            where=BetterNamespace(),
+        )
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
-        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Force update
 
@@ -57,16 +60,18 @@ class ConsumableUpdateParser(ParserBase):
             aliases=["a"],
         )
         parser_apply.set_defaults(apply=BetterNamespace())
-        cls.consumable_fields(parser_apply, "apply", QueryType.APPLY, False, False)
+        cls.consumable_fields(parser_apply, "apply", QueryType.APPLY)
 
 
 class ConsumableDeleteParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        parser.set_defaults(handler=ConsumableCommandHandler.delete, where=BetterNamespace())
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.delete, where=BetterNamespace()
+        )
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
-        cls.series_fields(parser, "where.series", QueryType.WHERE, True, False)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Force update
 

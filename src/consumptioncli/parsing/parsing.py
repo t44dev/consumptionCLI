@@ -51,14 +51,6 @@ class ParserBase(ABC):
             )
 
         _ = group.add_argument(
-            f"-{short_prefix}sid",
-            f"--{prefix}seriesid",
-            dest=f"{dest}.series_id",
-            type=query_selector(int, query_type, num_where, standard_apply),
-            action=SubStore,
-            default=SUPPRESS,
-        )
-        _ = group.add_argument(
             f"-{short_prefix}n",
             f"--{prefix}name",
             dest=f"{dest}.name",

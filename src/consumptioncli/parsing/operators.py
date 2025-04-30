@@ -15,6 +15,7 @@ class ApplyOperators(TypedDict):
     allowed_operators: Set[ApplyOperator]
     default_operator: ApplyOperator
 
+
 standard_apply: ApplyOperators = {
     "allowed_operators": {
         ApplyOperator.APPLY,
