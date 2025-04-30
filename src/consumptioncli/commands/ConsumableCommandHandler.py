@@ -3,6 +3,7 @@ from consumptionbackend.database import (
     ConsumableFieldsRequired,
     ConsumableApplyMapping,
 )
+from consumptioncli.lists import ConsumableList
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
 
@@ -21,7 +22,7 @@ class ConsumableCommandHandler:
     def new(cls, args: ConsumableNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
         consumable = ConsumableHandler.new(**args["new"])
-        return str(consumable)
+        return str(ConsumableList([consumable], args["date_format"]))
 
     @classmethod
     def list(cls, args: WhereArguments) -> str:
