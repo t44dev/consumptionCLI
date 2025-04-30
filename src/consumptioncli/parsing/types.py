@@ -84,10 +84,10 @@ def query_selector(
 where_operator_map: Mapping[WhereOperator, str] = {
     WhereOperator.EQ: "=",
     WhereOperator.NEQ: "!",
-    WhereOperator.GT: "^",
-    WhereOperator.GTE: "^=",
-    WhereOperator.LT: ".",
-    WhereOperator.LTE: ".=",
+    WhereOperator.GT: ">",
+    WhereOperator.GTE: ">=",
+    WhereOperator.LT: "<",
+    WhereOperator.LTE: "<=",
     WhereOperator.LIKE: "~",
 }
 

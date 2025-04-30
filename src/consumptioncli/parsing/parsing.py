@@ -173,7 +173,7 @@ class ParserBase(ABC):
     ):
         prefix = "personnel" if prefix_commands else ""
         short_prefix = prefix[0] if prefix_commands else ""
-        group = parser.add_argument_group("series")
+        group = parser.add_argument_group("personnel")
 
         if id:
             _ = group.add_argument(
