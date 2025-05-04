@@ -76,5 +76,27 @@ class ConsumableDeleteParser(ParserBase):
         # TODO: Force update
 
 
-# TODO: Set series
+class ConsumableSetSeriesParser(ParserBase):
+
+    @classmethod
+    def setup(cls, parser: ArgumentParser) -> None:
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.series,
+            where=BetterNamespace(),
+        )
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
+        # TODO: Force update
+
+        parser_apply = parser.add_subparsers(
+            title="apply", dest="subapply", required=True
+        ).add_parser(
+            "apply",
+            aliases=["a"],
+        )
+        parser_apply.set_defaults(apply=BetterNamespace())
+        cls.series_fields(parser_apply, "apply", QueryType.APPLY)
+
+
 # TODO: Add personnel

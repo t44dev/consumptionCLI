@@ -1,8 +1,11 @@
 # consumption
 from consumptionbackend.database import (
+    ApplyQuery,
     ConsumableFieldsRequired,
     ConsumableApplyMapping,
+    SeriesWhereMapping,
 )
+from consumptionbackend.database.sqlite import SeriesHandler
 from consumptioncli.lists import ConsumableList
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
@@ -14,6 +17,10 @@ class ConsumableNewArguments(CommandArgumentsBase):
 
 class ConsumableUpdateArguments(WhereArguments):
     apply: ConsumableApplyMapping
+
+
+class ConsumableSeriesArguments(WhereArguments):
+    apply: SeriesWhereMapping
 
 
 class ConsumableCommandHandler:
@@ -49,10 +56,15 @@ class ConsumableCommandHandler:
         return "Done"
 
     @classmethod
-    def series(cls, args: CommandArgumentsBase) -> str:
-        # TODO: Set series impl. in backend
+    def series(cls, args: ConsumableSeriesArguments) -> str:
         # TODO: Confirm series for multiple hits
-        return str(args)
+        series = SeriesHandler.find(**args["apply"])
+        series_id = series[0].id
+        consumables = ConsumableHandler.update(
+            args["where"], {"series_id": ApplyQuery(series_id)}
+        )
+        consumables_list = ConsumableList(consumables, args["date_format"])
+        return str(consumables_list)
 
     @classmethod
     def personnel(cls, args: CommandArgumentsBase) -> str:
