@@ -20,6 +20,7 @@ class ConsumableParser(ParserBase):
         ConsumableListParser.setup(sub.add_parser("list", aliases=["l"]))
         ConsumableUpdateParser.setup(sub.add_parser("update", aliases=["u"]))
         ConsumableDeleteParser.setup(sub.add_parser("delete", aliases=["d"]))
+        ConsumableApplySeriesParser.setup(sub.add_parser("series", aliases=["s"]))
         ConsumableChangePersonnelParser.setup(
             sub.add_parser("personnel", aliases=["p"])
         )
@@ -94,7 +95,6 @@ class ConsumableApplySeriesParser(ParserBase):
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
         # TODO: Force update
-
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
         ).add_parser(
@@ -102,7 +102,13 @@ class ConsumableApplySeriesParser(ParserBase):
             aliases=["a"],
         )
         parser_apply.set_defaults(apply=BetterNamespace())
-        cls.series_fields(parser_apply, "apply", QueryType.APPLY)
+        cls.series_fields(parser_apply, "apply.series", QueryType.WHERE, False, True)
+        cls.consumable_fields(
+            parser_apply, "apply.consumable", QueryType.WHERE, True, True
+        )
+        cls.personnel_fields(
+            parser_apply, "apply.personnel", QueryType.WHERE, True, True
+        )
 
 
 class ConsumableChangePersonnelParser(ParserBase):

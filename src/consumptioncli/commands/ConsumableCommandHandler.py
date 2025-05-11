@@ -4,7 +4,6 @@ from consumptionbackend.database import (
     ApplyQuery,
     ConsumableFieldsRequired,
     ConsumableApplyMapping,
-    SeriesWhereMapping,
     WhereMapping,
 )
 from consumptionbackend.database.sqlite import SeriesHandler
@@ -22,7 +21,7 @@ class ConsumableUpdateArguments(WhereArguments):
 
 
 class ConsumableSeriesArguments(WhereArguments):
-    apply: SeriesWhereMapping
+    apply: WhereMapping
 
 
 class ConsumableChangePersonnelArguments(CommandArgumentsBase):
