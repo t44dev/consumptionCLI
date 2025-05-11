@@ -47,3 +47,6 @@ class PersonnelCommandHandler:
         # TODO: How do we know how many are deleted?
         PersonnelHandler.delete(**args["where"])
         return "Done"
+
+
+# TODO: View command

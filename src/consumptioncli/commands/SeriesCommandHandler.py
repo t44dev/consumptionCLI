@@ -47,3 +47,6 @@ class SeriesCommandHandler:
         # TODO: How do we know how many are deleted?
         SeriesHandler.delete(**args["where"])
         return "Done"
+
+
+# TODO: View command

@@ -87,3 +87,6 @@ class ConsumableCommandHandler:
                 for cp in consumable_personnel
             ]
         )
+
+
+# TODO: View command
