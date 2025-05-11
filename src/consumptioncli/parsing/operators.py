@@ -51,3 +51,12 @@ num_apply: ApplyOperators = {
     },
     "default_operator": ApplyOperator.APPLY,
 }
+
+role_apply: ApplyOperators = {
+    "allowed_operators": {
+        ApplyOperator.APPLY,
+        ApplyOperator.ADD,
+        ApplyOperator.SUB,
+    },
+    "default_operator": ApplyOperator.ADD,
+}

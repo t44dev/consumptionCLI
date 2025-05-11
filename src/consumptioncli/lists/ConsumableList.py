@@ -61,6 +61,6 @@ class ConsumableList(EntityListBase):
                     else None
                 ),
             ]
-            for i, c in enumerate(cast(Sequence[Consumable], self._entities))
+            for i, c in enumerate(cast(Sequence[Consumable], self._elements))
         ]
         return tabulate(rows, ConsumableList.COLUMN_HEADERS)

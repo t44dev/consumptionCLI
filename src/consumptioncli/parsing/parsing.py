@@ -42,7 +42,7 @@ class ParserBase(ABC):
 
         if id:
             _ = group.add_argument(
-                f"-{short_prefix}id",
+                f"-{short_prefix}i",
                 f"--{prefix}id",
                 dest=f"{dest}.id",
                 type=query_selector(int, query_type, num_where, num_apply),
@@ -144,7 +144,7 @@ class ParserBase(ABC):
 
         if id:
             _ = group.add_argument(
-                f"-{short_prefix}id",
+                f"-{short_prefix}i",
                 f"--{prefix}id",
                 dest=f"{dest}.id",
                 type=query_selector(int, query_type, num_where, num_apply),
@@ -177,7 +177,7 @@ class ParserBase(ABC):
 
         if id:
             _ = group.add_argument(
-                f"-{short_prefix}id",
+                f"-{short_prefix}i",
                 f"--{prefix}id",
                 dest=f"{dest}.id",
                 type=query_selector(int, query_type, num_where, num_apply),

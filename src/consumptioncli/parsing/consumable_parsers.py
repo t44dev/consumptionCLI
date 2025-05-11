@@ -2,9 +2,12 @@
 from argparse import ArgumentParser
 
 # consumption
-from .BetterNamespace import BetterNamespace
-from .parsing import ParserBase, QueryType
 from consumptioncli.commands import ConsumableCommandHandler
+from consumptioncli.parsing.operators import role_apply
+from .BetterNamespace import BetterNamespace
+from .parsing import ParserBase
+from .types import QueryType, apply_query, sequence
+from .actions import SubStore
 
 
 class ConsumableParser(ParserBase):
@@ -17,6 +20,9 @@ class ConsumableParser(ParserBase):
         ConsumableListParser.setup(sub.add_parser("list", aliases=["l"]))
         ConsumableUpdateParser.setup(sub.add_parser("update", aliases=["u"]))
         ConsumableDeleteParser.setup(sub.add_parser("delete", aliases=["d"]))
+        ConsumableChangePersonnelParser.setup(
+            sub.add_parser("personnel", aliases=["p"])
+        )
 
 
 class ConsumableNewParser(ParserBase):
@@ -76,7 +82,7 @@ class ConsumableDeleteParser(ParserBase):
         # TODO: Force update
 
 
-class ConsumableSetSeriesParser(ParserBase):
+class ConsumableApplySeriesParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
@@ -99,4 +105,47 @@ class ConsumableSetSeriesParser(ParserBase):
         cls.series_fields(parser_apply, "apply", QueryType.APPLY)
 
 
-# TODO: Add personnel
+class ConsumableChangePersonnelParser(ParserBase):
+
+    @classmethod
+    def setup(cls, parser: ArgumentParser) -> None:
+        # TODO: Force update
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.personnel,
+            where=BetterNamespace(),
+        )
+        cls.consumable_fields(
+            parser, "consumable_where.consumable", QueryType.WHERE, False, True
+        )
+        cls.series_fields(
+            parser, "consumable_where.series", QueryType.WHERE, True, True
+        )
+        cls.personnel_fields(
+            parser, "consumable_where.personnel", QueryType.WHERE, True, True
+        )
+
+        parser_apply = parser.add_subparsers(
+            title="apply", dest="subapply", required=True
+        ).add_parser(
+            "apply",
+            aliases=["a"],
+        )
+        parser_apply.set_defaults(apply=BetterNamespace())
+        cls.consumable_fields(
+            parser_apply, "personnel_where.consumable", QueryType.WHERE, True, True
+        )
+        cls.series_fields(
+            parser_apply, "personnel_where.series", QueryType.WHERE, True, True
+        )
+        cls.personnel_fields(
+            parser_apply, "personnel_where.personnel", QueryType.WHERE, False, False
+        )
+
+        _ = parser_apply.add_argument(
+            f"-r",
+            f"--role",
+            dest=f"roles",
+            type=sequence(apply_query(str, **role_apply)),
+            action=SubStore,
+            required=True,
+        )

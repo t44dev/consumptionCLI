@@ -3,7 +3,8 @@ from argparse import ArgumentParser
 
 # consumption
 from .BetterNamespace import BetterNamespace
-from .parsing import ParserBase, QueryType
+from .parsing import ParserBase
+from .types import QueryType
 from consumptioncli.commands import SeriesCommandHandler
 
 

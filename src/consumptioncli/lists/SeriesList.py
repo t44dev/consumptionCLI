@@ -31,6 +31,6 @@ class SeriesList(EntityListBase):
         # TODO: Consumable data i.e. average rating
         rows = [
             [i + 1, s.id, s.name]
-            for i, s in enumerate(cast(Sequence[Series], self._entities))
+            for i, s in enumerate(cast(Sequence[Series], self._elements))
         ]
         return tabulate(rows, SeriesList.COLUMN_HEADERS)

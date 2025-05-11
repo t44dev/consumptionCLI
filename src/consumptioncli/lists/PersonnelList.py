@@ -7,8 +7,8 @@ from itertools import chain
 from tabulate import tabulate
 
 # consumable
-from consumptionbackend.entities import Personnel
-from .list_handling import EntityListBase
+from consumptionbackend.entities import Personnel, PersonnelRoles
+from .list_handling import DisplayListBase, EntityListBase
 
 
 @final
@@ -29,23 +29,32 @@ class PersonnelList(EntityListBase):
     def __str__(self) -> str:
         # TODO: Consumable data i.e. average rating
         rows = [
-            [
-                i + 1,
-                p.id,
-                " ".join(
-                    cast(
-                        filter[str],
-                        filter(
-                            lambda name: name is not None,
-                            [
-                                p.first_name,
-                                f'"{p.pseudonym}"' if p.pseudonym is not None else None,
-                                p.last_name,
-                            ],
-                        ),
-                    )
-                ),
-            ]
-            for i, p in enumerate(cast(Sequence[Personnel], self._entities))
+            [i + 1, p.id, p.full_name()]
+            for i, p in enumerate(cast(Sequence[Personnel], self._elements))
         ]
         return tabulate(rows, PersonnelList.COLUMN_HEADERS)
+
+
+@final
+class PersonnelRoleList(DisplayListBase):
+
+    COLUMN_HEADERS: Sequence[str] = list(
+        chain(
+            EntityListBase.DEFAULT_HEADERS,
+            [
+                "Name",
+                "Role",
+            ],
+        )
+    )
+
+    def __init__(self, elements: Sequence[PersonnelRoles]) -> None:
+        super().__init__(elements)
+
+    def __str__(self) -> str:
+        rows = [
+            [i + 1, pr.personnel.id, pr.personnel.full_name(), role]
+            for i, pr in enumerate(cast(Sequence[PersonnelRoles], self._elements))
+            for role in pr.roles
+        ]
+        return tabulate(rows, PersonnelRoleList.COLUMN_HEADERS)

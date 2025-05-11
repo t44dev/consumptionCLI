@@ -1,12 +1,14 @@
 # consumption
+from collections.abc import Sequence
 from consumptionbackend.database import (
     ApplyQuery,
     ConsumableFieldsRequired,
     ConsumableApplyMapping,
     SeriesWhereMapping,
+    WhereMapping,
 )
 from consumptionbackend.database.sqlite import SeriesHandler
-from consumptioncli.lists import ConsumableList
+from consumptioncli.lists import ConsumableList, PersonnelRoleList
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
 
@@ -21,6 +23,12 @@ class ConsumableUpdateArguments(WhereArguments):
 
 class ConsumableSeriesArguments(WhereArguments):
     apply: SeriesWhereMapping
+
+
+class ConsumableChangePersonnelArguments(CommandArgumentsBase):
+    consumable_where: WhereMapping
+    personnel_where: WhereMapping
+    roles: Sequence[ApplyQuery[str]]
 
 
 class ConsumableCommandHandler:
@@ -67,7 +75,16 @@ class ConsumableCommandHandler:
         return str(consumables_list)
 
     @classmethod
-    def personnel(cls, args: CommandArgumentsBase) -> str:
-        # TODO: Set/remove personnel impl. in backend
+    def personnel(cls, args: ConsumableChangePersonnelArguments) -> str:
         # TODO: Can we just create personnel if they don't exist?
-        return str(args)
+        print(args["roles"])
+        consumable_personnel = ConsumableHandler.change_personnel(
+            args["consumable_where"], args["personnel_where"], args["roles"]
+        )
+
+        return "\n\n".join(
+            [
+                cp.consumable.name + "\n" + str(PersonnelRoleList(cp.personnel))
+                for cp in consumable_personnel
+            ]
+        )
