@@ -1,36 +1,55 @@
 # stdlib
 from collections.abc import Sequence
-from typing import cast, final
-from itertools import chain
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any, final
 
-# 3rd party
-from tabulate import tabulate
+if TYPE_CHECKING:
+    from _typeshed import SupportsRichComparison
 
 # consumable
 from consumptionbackend.entities import Series
-from .list_handling import EntityListBase
+from consumptioncli.utils import truncate
+from .list_handling import EntityList
+
+
+class SeriesOrderKey(StrEnum):
+    NAME = "name"
 
 
 @final
-class SeriesList(EntityListBase):
+class SeriesList(EntityList[Series]):
 
-    COLUMN_HEADERS: Sequence[str] = list(
-        chain(
-            EntityListBase.DEFAULT_HEADERS,
-            [
-                "Name",
-            ],
-        )
-    )
-
-    def __init__(self, entities: Sequence[Series]) -> None:
-        super().__init__(entities)
-
-    def __str__(self) -> str:
-        # TODO: Truncate using window width
+    def __init__(
+        self,
+        entities: Sequence[Series],
+        order_key: StrEnum = SeriesOrderKey.NAME,
+        reverse: bool = False,
+    ) -> None:
         # TODO: Consumable data i.e. average rating
-        rows = [
-            [i + 1, s.id, s.name]
-            for i, s in enumerate(cast(Sequence[Series], self._elements))
-        ]
-        return tabulate(rows, SeriesList.COLUMN_HEADERS)
+        super().__init__(
+            entities,
+            order_key,
+            reverse,
+        )
+
+    @classmethod
+    def order_keys(cls) -> Sequence[StrEnum]:
+        return [*super().order_keys(), *list(SeriesOrderKey)]
+
+    @classmethod
+    def _headers(cls) -> Sequence[str]:
+        return [*super()._headers(), "Name"]
+
+    def _row(self, index: int, element: Series) -> Sequence[Any]:
+        # TODO: Average rating column
+        # TODO: Total parts column
+        return [*super()._row(index, element), truncate(element.name)]
+
+    def _order_key_to_value(
+        self, index: int, element: Series, order_key: StrEnum
+    ) -> SupportsRichComparison | None:
+        match order_key:
+            case SeriesOrderKey.NAME:
+                return element.name
+            case _:
+                return super()._order_key_to_value(index, element, order_key)

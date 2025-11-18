@@ -1,4 +1,5 @@
 # consumption
+from enum import StrEnum
 from consumptionbackend.database import (
     PersonnelFieldsRequired,
     PersonnelApplyMapping,
@@ -8,37 +9,44 @@ from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import PersonnelHandler
 
 
-class PersonnelNewArguments(CommandArgumentsBase):
+class PersonnelNewCommandArguments(CommandArgumentsBase):
     new: PersonnelFieldsRequired
 
 
-class PersonnelUpdateArguments(WhereArguments):
+class PersonnelListCommandArguments(WhereArguments):
+    order_key: StrEnum
+    reverse: bool
+
+
+class PersonnelUpdateCommandArguments(WhereArguments):
     apply: PersonnelApplyMapping
+    order_key: StrEnum
+    reverse: bool
 
 
 class PersonnelCommandHandler:
 
     @classmethod
-    def new(cls, args: PersonnelNewArguments) -> str:
+    def new(cls, args: PersonnelNewCommandArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
         personnel = PersonnelHandler.new(**args["new"])
         personnel_list = PersonnelList([personnel])
         return str(personnel_list)
 
     @classmethod
-    def list(cls, args: WhereArguments) -> str:
+    def list(cls, args: PersonnelListCommandArguments) -> str:
         personnel = PersonnelHandler.find(**args["where"])
-        personnel_list = PersonnelList(personnel)
+        personnel_list = PersonnelList(personnel, args["order_key"], args["reverse"])
         return str(personnel_list)
 
     @classmethod
-    def update(cls, args: PersonnelUpdateArguments) -> str:
+    def update(cls, args: PersonnelUpdateCommandArguments) -> str:
         # TODO: What if no values to set are provided?
         # TODO: Confirm update for multiple hits
         # TODO: What happens if none are found
         # TODO: Tagging
         personnel = PersonnelHandler.update(args["where"], args["apply"])
-        personnel_list = PersonnelList(personnel)
+        personnel_list = PersonnelList(personnel, args["order_key"], args["reverse"])
         return str(personnel_list)
 
     @classmethod

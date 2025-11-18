@@ -3,10 +3,11 @@ from argparse import ArgumentParser
 
 # consumption
 from consumptioncli.commands import ConsumableCommandHandler
-from consumptioncli.parsing.operators import role_apply
+from consumptioncli.lists import ConsumableList, ConsumableOrderKey
+from .operators import role_apply
 from .BetterNamespace import BetterNamespace
 from .parsing import ParserBase
-from .types import QueryType, apply_query, sequence
+from .types import QueryType, apply_query, closest_choice_index, sequence
 from .actions import SubStore
 
 
@@ -14,6 +15,7 @@ class ConsumableParser(ParserBase):
 
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
+
         sub = parser.add_subparsers(title="mode", dest="mode", required=True)
 
         ConsumableNewParser.setup(sub.add_parser("new", aliases=["n"]))
@@ -23,6 +25,29 @@ class ConsumableParser(ParserBase):
         ConsumableApplySeriesParser.setup(sub.add_parser("series", aliases=["s"]))
         ConsumableChangePersonnelParser.setup(
             sub.add_parser("personnel", aliases=["p"])
+        )
+
+    @classmethod
+    def list_fields(cls, parser: ArgumentParser) -> None:
+        group = parser.add_argument_group("listing")
+        _ = group.add_argument(
+            "-o",
+            "--order",
+            dest="order_key",
+            default=ConsumableOrderKey.RATING,
+            type=closest_choice_index(
+                lambda i: ConsumableList.order_keys()[i], ConsumableList.order_keys()
+            ),
+            metavar="ORDER",
+            action=SubStore,
+        )
+        _ = group.add_argument(
+            "--reverse",
+            dest="reverse",
+            const=True,
+            default=False,
+            nargs=0,
+            action=SubStore,
         )
 
 
@@ -44,7 +69,7 @@ class ConsumableListParser(ParserBase):
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Order arguments
+        ConsumableParser.list_fields(parser)
 
 
 class ConsumableUpdateParser(ParserBase):
@@ -68,6 +93,7 @@ class ConsumableUpdateParser(ParserBase):
         )
         parser_apply.set_defaults(apply=BetterNamespace())
         cls.consumable_fields(parser_apply, "apply", QueryType.APPLY)
+        ConsumableParser.list_fields(parser)
 
 
 class ConsumableDeleteParser(ParserBase):
@@ -109,6 +135,7 @@ class ConsumableApplySeriesParser(ParserBase):
         cls.personnel_fields(
             parser_apply, "apply.personnel", QueryType.WHERE, True, True
         )
+        ConsumableParser.list_fields(parser)
 
 
 class ConsumableChangePersonnelParser(ParserBase):

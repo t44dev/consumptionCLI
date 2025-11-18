@@ -3,7 +3,7 @@ from sys import exit, stderr
 from argparse import ArgumentError
 
 # consumption
-from consumptioncli.parsing import MainParser, BetterNamespace, post_process
+from .parsing import MainParser, BetterNamespace, post_process
 
 
 def main() -> int:

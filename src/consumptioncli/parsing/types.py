@@ -2,6 +2,7 @@
 from argparse import Namespace
 from dataclasses import dataclass
 from datetime import datetime
+from difflib import get_close_matches
 from enum import IntEnum
 from typing import Any, TypeVar, cast
 
@@ -29,6 +30,7 @@ class QueryType(IntEnum):
 
 
 def consumable_status(value: str) -> Status:
+    # TODO: Consider using difflab here
     for s in Status:
         # Accept integer specification
         try:
@@ -62,6 +64,18 @@ def noneable(fn: Callable[[str], T]) -> Callable[[str], T | None]:
     return lambda value: (
         fn(value) if value.lower() not in ["?", "null", "none"] else None
     )
+
+
+def closest_choice_index(
+    fn: Callable[[int], T], choices: Sequence[str]
+) -> Callable[[str], T]:
+    choices_lower = [c.lower() for c in choices]
+
+    def convert_closest_choice_index(value: str) -> T:
+        closest_matches = get_close_matches(value.lower(), choices_lower, n=1, cutoff=0)
+        return fn(choices_lower.index(closest_matches[0]))
+
+    return convert_closest_choice_index
 
 
 def query_selector(

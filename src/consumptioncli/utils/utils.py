@@ -1,9 +1,10 @@
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, final
 from collections.abc import Sequence
 
 T = TypeVar("T")
 
 
+@final
 class _SentinelClass:
     def __init__(self, name: str) -> None:
         self.name = name
@@ -26,8 +27,10 @@ def sort_by(instances: Sequence[T], sort_key: str, reverse: bool = False) -> lis
 
 
 def request_input(
-    name: str, default: T = NONE_SENTINEL, validator: Callable = None
-) -> T:
+    name: str,
+    default: T = NONE_SENTINEL,
+    validator: Callable[[str | T], bool] | None = None,
+) -> str | T:
     if default is not None:
         request_string = f"Provide a {name} (Default : {default}): "
     else:
