@@ -1,15 +1,17 @@
-# consumption
 from collections.abc import Sequence
 from enum import StrEnum
+
 from consumptionbackend.database import (
     ApplyQuery,
-    ConsumableFieldsRequired,
     ConsumableApplyMapping,
+    ConsumableFieldsRequired,
     WhereMapping,
 )
 from consumptionbackend.database.sqlite import PersonnelHandler, SeriesHandler
+
 from consumptioncli.lists import ConsumableList, PersonnelRoleList
 from consumptioncli.lists.PersonnelList import PersonnelRoles
+
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
 
@@ -42,7 +44,6 @@ class ConsumableChangePersonnelCommandArguments(CommandArgumentsBase):
 
 
 class ConsumableCommandHandler:
-
     @classmethod
     def new(cls, args: ConsumableNewCommandArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?

@@ -1,14 +1,11 @@
-# stdlib
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, final
+from typing import Any, final, override
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsRichComparison
-
-# consumable
 from consumptionbackend.entities import Consumable
+
 from consumptioncli.utils import truncate
+
 from .list_handling import EntityList
 
 
@@ -26,7 +23,6 @@ class ConsumableOrderKey(StrEnum):
 
 @final
 class ConsumableList(EntityList[Consumable]):
-
     def __init__(
         self,
         entities: Sequence[Consumable],
@@ -41,10 +37,12 @@ class ConsumableList(EntityList[Consumable]):
         )
         self.date_format = date_format
 
+    @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
         return [*super().order_keys(), *list(ConsumableOrderKey)]
 
+    @override
     @classmethod
     def _headers(cls) -> Sequence[str]:
         return [
@@ -59,6 +57,7 @@ class ConsumableList(EntityList[Consumable]):
             "Completed",
         ]
 
+    @override
     def _row(self, index: int, element: Consumable) -> Sequence[Any]:
         return [
             *super()._row(index, element),
@@ -72,9 +71,10 @@ class ConsumableList(EntityList[Consumable]):
             element.end_date.strftime(self.date_format) if element.end_date else "",
         ]
 
+    @override
     def _order_key_to_value(
         self, index: int, element: Consumable, order_key: StrEnum
-    ) -> SupportsRichComparison | None:
+    ) -> Any | None:
         match order_key:
             case ConsumableOrderKey.TYPE:
                 return element.type

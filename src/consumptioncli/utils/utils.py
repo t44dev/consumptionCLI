@@ -1,5 +1,5 @@
-from typing import TypeVar, Callable, final
 from collections.abc import Sequence
+from typing import Callable, TypeVar, final, override
 
 T = TypeVar("T")
 
@@ -9,6 +9,7 @@ class _SentinelClass:
     def __init__(self, name: str) -> None:
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return self.name
 

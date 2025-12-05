@@ -1,16 +1,15 @@
-# stdlib
 from argparse import ArgumentParser
+from typing import override
 
-# consumption
 from .actions import SubStore
-from .parsing import ParserBase
 from .consumable_parsers import ConsumableParser
-from .series_parsers import SeriesParser
+from .parsing import ParserBase
 from .personnel_parsers import PersonnelParser
+from .series_parsers import SeriesParser
 
 
 class MainParser(ParserBase):
-
+    @override
     @classmethod
     def get(cls) -> ArgumentParser:
         parser = ArgumentParser(
@@ -19,6 +18,7 @@ class MainParser(ParserBase):
         cls.setup(parser)
         return parser
 
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         _ = parser.add_argument(

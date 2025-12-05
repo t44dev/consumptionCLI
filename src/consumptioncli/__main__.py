@@ -1,9 +1,7 @@
-# stdlib
-from sys import exit, stderr
 from argparse import ArgumentError
+from sys import exit, stderr
 
-# consumption
-from .parsing import MainParser, BetterNamespace, post_process
+from .parsing import BetterNamespace, MainParser, post_process
 
 
 def main() -> int:

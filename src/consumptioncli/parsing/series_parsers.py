@@ -1,9 +1,9 @@
-# stdlib
 from argparse import ArgumentParser
+from typing import override
 
-# consumption
 from consumptioncli.commands import SeriesCommandHandler
 from consumptioncli.lists import SeriesList, SeriesOrderKey
+
 from .actions import SubStore
 from .BetterNamespace import BetterNamespace
 from .parsing import ParserBase
@@ -11,7 +11,7 @@ from .types import QueryType, closest_choice_index
 
 
 class SeriesParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         sub = parser.add_subparsers(title="mode", dest="mode", required=True)
@@ -46,6 +46,7 @@ class SeriesParser(ParserBase):
 
 
 class SeriesNewParser(ParserBase):
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(handler=SeriesCommandHandler.new, new=BetterNamespace())
@@ -53,6 +54,7 @@ class SeriesNewParser(ParserBase):
 
 
 class SeriesListParser(ParserBase):
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(handler=SeriesCommandHandler.list, where=BetterNamespace())
@@ -63,7 +65,7 @@ class SeriesListParser(ParserBase):
 
 
 class SeriesUpdateParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -87,7 +89,7 @@ class SeriesUpdateParser(ParserBase):
 
 
 class SeriesDeleteParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(

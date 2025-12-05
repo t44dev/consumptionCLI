@@ -1,21 +1,20 @@
-# stdlib
 from argparse import ArgumentParser
+from typing import override
 
-# consumption
 from consumptioncli.commands import ConsumableCommandHandler
 from consumptioncli.lists import ConsumableList, ConsumableOrderKey
-from .operators import role_tag_apply
+
+from .actions import SubStore
 from .BetterNamespace import BetterNamespace
+from .operators import role_tag_apply
 from .parsing import ParserBase
 from .types import QueryType, apply_query, closest_choice_index, sequence
-from .actions import SubStore
 
 
 class ConsumableParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-
         sub = parser.add_subparsers(title="mode", dest="mode", required=True)
 
         ConsumableNewParser.setup(sub.add_parser("new", aliases=["n"]))
@@ -52,7 +51,7 @@ class ConsumableParser(ParserBase):
 
 
 class ConsumableNewParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(handler=ConsumableCommandHandler.new, new=BetterNamespace())
@@ -60,7 +59,7 @@ class ConsumableNewParser(ParserBase):
 
 
 class ConsumableListParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -73,7 +72,7 @@ class ConsumableListParser(ParserBase):
 
 
 class ConsumableUpdateParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -97,7 +96,7 @@ class ConsumableUpdateParser(ParserBase):
 
 
 class ConsumableDeleteParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -110,7 +109,7 @@ class ConsumableDeleteParser(ParserBase):
 
 
 class ConsumableApplySeriesParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -139,7 +138,7 @@ class ConsumableApplySeriesParser(ParserBase):
 
 
 class ConsumableChangePersonnelParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         # TODO: Force update
@@ -175,9 +174,9 @@ class ConsumableChangePersonnelParser(ParserBase):
         )
 
         _ = parser_apply.add_argument(
-            f"-r",
-            f"--role",
-            dest=f"roles",
+            "-r",
+            "--role",
+            dest="roles",
             type=sequence(apply_query(str, **role_tag_apply)),
             action=SubStore,
             required=True,

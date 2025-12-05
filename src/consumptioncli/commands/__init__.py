@@ -1,6 +1,6 @@
 from .ConsumableCommandHandler import ConsumableCommandHandler
-from .SeriesCommandHandler import SeriesCommandHandler
 from .PersonnelCommandHandler import PersonnelCommandHandler
+from .SeriesCommandHandler import SeriesCommandHandler
 
 __all__ = [
     "ConsumableCommandHandler",

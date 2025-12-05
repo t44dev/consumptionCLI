@@ -1,20 +1,19 @@
-# stdlib
 from argparse import Namespace
+from collections.abc import Callable, Mapping, Sequence, Set
 from dataclasses import dataclass
 from datetime import datetime
 from difflib import get_close_matches
 from enum import IntEnum
 from typing import Any, TypeVar, cast
 
-# consumption
-from collections.abc import Callable, Mapping, Sequence, Set
-from consumptionbackend.entities import Status
 from consumptionbackend.database import (
-    WhereOperator,
     ApplyOperator,
-    WhereQuery,
     ApplyQuery,
+    WhereOperator,
+    WhereQuery,
 )
+from consumptionbackend.entities import Status
+
 from .operators import ApplyOperators, WhereOperators
 
 T = TypeVar("T")
@@ -188,7 +187,6 @@ def datetime_placeholder(value: str) -> DateTimePlaceholder:
 
 
 def post_process(value: object, date_format: str) -> Any:
-
     if isinstance(value, Namespace):
         v = vars(value)
         for key in vars(value):

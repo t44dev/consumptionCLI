@@ -1,7 +1,5 @@
-# stdlib
 from typing import TypedDict
 
-# consumption
 from consumptionbackend.database import WhereMapping
 
 

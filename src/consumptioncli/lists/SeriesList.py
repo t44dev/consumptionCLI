@@ -1,14 +1,11 @@
-# stdlib
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, final
+from typing import Any, final, override
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsRichComparison
-
-# consumable
 from consumptionbackend.entities import Series
+
 from consumptioncli.utils import truncate
+
 from .list_handling import EntityList
 
 
@@ -18,7 +15,6 @@ class SeriesOrderKey(StrEnum):
 
 @final
 class SeriesList(EntityList[Series]):
-
     def __init__(
         self,
         entities: Sequence[Series],
@@ -32,22 +28,26 @@ class SeriesList(EntityList[Series]):
             reverse,
         )
 
+    @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
         return [*super().order_keys(), *list(SeriesOrderKey)]
 
+    @override
     @classmethod
     def _headers(cls) -> Sequence[str]:
         return [*super()._headers(), "Name"]
 
+    @override
     def _row(self, index: int, element: Series) -> Sequence[Any]:
         # TODO: Average rating column
         # TODO: Total parts column
         return [*super()._row(index, element), truncate(element.name)]
 
+    @override
     def _order_key_to_value(
         self, index: int, element: Series, order_key: StrEnum
-    ) -> SupportsRichComparison | None:
+    ) -> Any | None:
         match order_key:
             case SeriesOrderKey.NAME:
                 return element.name

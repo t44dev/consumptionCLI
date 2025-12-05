@@ -1,10 +1,15 @@
-# stdlib
 from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser
 
-# consumption
-from .operators import num_apply, num_where, role_tag_apply, standard_apply, str_where, tag_where
 from .actions import SubStore
+from .operators import (
+    num_apply,
+    num_where,
+    role_tag_apply,
+    standard_apply,
+    str_where,
+    tag_where,
+)
 from .types import (
     QueryType,
     apply_query,
@@ -18,7 +23,6 @@ from .types import (
 
 
 class ParserBase(ABC):
-
     @classmethod
     def get(cls) -> ArgumentParser:
         parser = ArgumentParser()

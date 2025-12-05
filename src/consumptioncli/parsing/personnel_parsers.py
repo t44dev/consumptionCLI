@@ -1,18 +1,17 @@
-# stdlib
 from argparse import ArgumentParser
+from typing import override
 
-
-# consumption
 from consumptioncli.commands import PersonnelCommandHandler
 from consumptioncli.lists import PersonnelList, PersonnelOrderKey
+
+from .actions import SubStore
 from .BetterNamespace import BetterNamespace
 from .parsing import ParserBase
-from .actions import SubStore
 from .types import QueryType, closest_choice_index
 
 
 class PersonnelParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         sub = parser.add_subparsers(title="mode", dest="mode", required=True)
@@ -47,6 +46,7 @@ class PersonnelParser(ParserBase):
 
 
 class PersonnelNewParser(ParserBase):
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(handler=PersonnelCommandHandler.new, new=BetterNamespace())
@@ -54,6 +54,7 @@ class PersonnelNewParser(ParserBase):
 
 
 class PersonnelListParser(ParserBase):
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -66,7 +67,7 @@ class PersonnelListParser(ParserBase):
 
 
 class PersonnelUpdateParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(
@@ -89,7 +90,7 @@ class PersonnelUpdateParser(ParserBase):
 
 
 class PersonnelDeleteParser(ParserBase):
-
+    @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         parser.set_defaults(

@@ -1,12 +1,12 @@
-from .list_handling import EntityList
 from .ConsumableList import ConsumableList, ConsumableOrderKey
-from .SeriesList import SeriesList, SeriesOrderKey
+from .list_handling import EntityList
 from .PersonnelList import (
     PersonnelList,
-    PersonnelRoleList,
     PersonnelOrderKey,
+    PersonnelRoleList,
     PersonnelRoleOrderKey,
 )
+from .SeriesList import SeriesList, SeriesOrderKey
 
 __all__ = [
     "EntityList",

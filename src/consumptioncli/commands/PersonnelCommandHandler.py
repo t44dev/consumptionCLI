@@ -1,10 +1,12 @@
-# consumption
 from enum import StrEnum
+
 from consumptionbackend.database import (
-    PersonnelFieldsRequired,
     PersonnelApplyMapping,
+    PersonnelFieldsRequired,
 )
+
 from consumptioncli.lists import PersonnelList
+
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import PersonnelHandler
 
@@ -25,7 +27,6 @@ class PersonnelUpdateCommandArguments(WhereArguments):
 
 
 class PersonnelCommandHandler:
-
     @classmethod
     def new(cls, args: PersonnelNewCommandArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?

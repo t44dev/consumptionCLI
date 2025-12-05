@@ -1,9 +1,10 @@
-# consumption
 from consumptionbackend.database import (
-    SeriesFieldsRequired,
     SeriesApplyMapping,
+    SeriesFieldsRequired,
 )
+
 from consumptioncli.lists import SeriesList
+
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import SeriesHandler
 
@@ -17,7 +18,6 @@ class SeriesUpdateArguments(WhereArguments):
 
 
 class SeriesCommandHandler:
-
     @classmethod
     def new(cls, args: SeriesNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?

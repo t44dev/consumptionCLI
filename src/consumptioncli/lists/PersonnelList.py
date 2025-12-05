@@ -1,14 +1,11 @@
-# stdlib
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, NamedTuple, final
+from typing import Any, NamedTuple, final, override
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsRichComparison
-
-# consumable
 from consumptionbackend.entities import Personnel
+
 from consumptioncli.utils import truncate
+
 from .list_handling import DisplayListBase, EntityList
 
 
@@ -18,7 +15,6 @@ class PersonnelOrderKey(StrEnum):
 
 @final
 class PersonnelList(EntityList[Personnel]):
-
     def __init__(
         self,
         entities: Sequence[Personnel],
@@ -31,21 +27,25 @@ class PersonnelList(EntityList[Personnel]):
             reverse,
         )
 
+    @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
         return [*super().order_keys(), *list(PersonnelOrderKey)]
 
+    @override
     @classmethod
     def _headers(cls) -> Sequence[str]:
         return [*super()._headers(), "Name"]
 
+    @override
     def _row(self, index: int, element: Personnel) -> Sequence[Any]:
         # TODO: Consumable data i.e. average rating
         return [*super()._row(index, element), element.full_name()]
 
+    @override
     def _order_key_to_value(
         self, index: int, element: Personnel, order_key: StrEnum
-    ) -> SupportsRichComparison | None:
+    ) -> Any | None:
         match order_key:
             case PersonnelOrderKey.NAME:
                 return element.full_name()
@@ -65,7 +65,6 @@ class PersonnelRoles(NamedTuple):
 
 @final
 class PersonnelRoleList(DisplayListBase[tuple[Personnel, str]]):
-
     def __init__(
         self,
         entities: Sequence[PersonnelRoles],
@@ -78,21 +77,25 @@ class PersonnelRoleList(DisplayListBase[tuple[Personnel, str]]):
             reverse,
         )
 
+    @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
         return list(PersonnelRoleOrderKey)
 
+    @override
     @classmethod
     def _headers(cls) -> Sequence[str]:
         return ["Name", "Role"]
 
+    @override
     def _row(self, index: int, element: tuple[Personnel, str]) -> Sequence[Any]:
         # TODO: Consumable data i.e. average rating
         return [truncate(element[0].full_name()), truncate(element[1])]
 
+    @override
     def _order_key_to_value(
         self, index: int, element: tuple[Personnel, str], order_key: StrEnum
-    ) -> SupportsRichComparison | None:
+    ) -> Any | None:
         match order_key:
             case PersonnelRoleOrderKey.NAME:
                 return element[0].full_name()

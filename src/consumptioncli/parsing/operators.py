@@ -1,9 +1,7 @@
-# stdlib
-from typing import TypedDict
 from collections.abc import Set
+from typing import TypedDict
 
-# consumption
-from consumptionbackend.database import WhereOperator, ApplyOperator
+from consumptionbackend.database import ApplyOperator, WhereOperator
 
 
 class WhereOperators(TypedDict):

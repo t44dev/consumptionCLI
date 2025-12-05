@@ -1,15 +1,13 @@
-# stdlib
 from argparse import Action, ArgumentParser, Namespace
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, override
 
-# consumption
 from .BetterNamespace import BetterNamespace
 
 
 # Thanks to hpaulj for the main ideas around this implementation https://stackoverflow.com/a/18677482
 class SubStore(Action):
-
+    @override
     def __call__(
         self,
         parser: ArgumentParser,

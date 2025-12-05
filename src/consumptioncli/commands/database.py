@@ -1,7 +1,7 @@
 from consumptionbackend.database.sqlite import (
     ConsumableHandler,
-    SeriesHandler,
     PersonnelHandler,
+    SeriesHandler,
 )
 
 __all__ = ["ConsumableHandler", "SeriesHandler", "PersonnelHandler"]
