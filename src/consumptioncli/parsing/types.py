@@ -139,8 +139,8 @@ def where_query(
 
 apply_operator_map: Mapping[ApplyOperator, str] = {
     ApplyOperator.APPLY: "=",
-    ApplyOperator.ADD: "+",
-    ApplyOperator.SUB: "-",
+    ApplyOperator.ADD: "^",
+    ApplyOperator.SUB: ".",
 }
 
 

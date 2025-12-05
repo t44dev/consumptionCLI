@@ -7,8 +7,9 @@ from consumptionbackend.database import (
     ConsumableApplyMapping,
     WhereMapping,
 )
-from consumptionbackend.database.sqlite import SeriesHandler
+from consumptionbackend.database.sqlite import PersonnelHandler, SeriesHandler
 from consumptioncli.lists import ConsumableList, PersonnelRoleList
+from consumptioncli.lists.PersonnelList import PersonnelRoles
 from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import ConsumableHandler
 
@@ -45,7 +46,9 @@ class ConsumableCommandHandler:
     @classmethod
     def new(cls, args: ConsumableNewCommandArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
-        consumable = ConsumableHandler.new(**args["new"])
+        consumable_id = ConsumableHandler.new(**args["new"])
+        consumable = ConsumableHandler.find_by_id(consumable_id)
+
         consumables_list = ConsumableList(
             [consumable],
             date_format=args["date_format"],
@@ -55,6 +58,7 @@ class ConsumableCommandHandler:
     @classmethod
     def list(cls, args: ConsumableListCommandArguments) -> str:
         consumables = ConsumableHandler.find(**args["where"])
+
         consumables_list = ConsumableList(
             consumables,
             args["order_key"],
@@ -69,7 +73,9 @@ class ConsumableCommandHandler:
         # TODO: Confirm update for multiple hits
         # TODO: What happens if none are found
         # TODO: Tagging
-        consumables = ConsumableHandler.update(args["where"], args["apply"])
+        consumable_ids = ConsumableHandler.update(args["where"], args["apply"])
+        consumables = ConsumableHandler.find_by_ids(consumable_ids)
+
         consumables_list = ConsumableList(
             consumables,
             args["order_key"],
@@ -81,20 +87,21 @@ class ConsumableCommandHandler:
     @classmethod
     def delete(cls, args: WhereArguments) -> str:
         # TODO: Confirm delete for multiple hits
-        # TODO: How do we know how many are deleted?
-        ConsumableHandler.delete(**args["where"])
-        return "Done"
+        consumables_deleted = ConsumableHandler.delete(**args["where"])
+        return f"{consumables_deleted} Consumables deleted."
 
     @classmethod
     def series(cls, args: ConsumableSeriesCommandArguments) -> str:
         # TODO: Confirm series for multiple hits
         series = SeriesHandler.find(**args["apply"])
         series_id = series[0].id
-        consumables = ConsumableHandler.update(
+        consumables_ids = ConsumableHandler.update(
             args["where"], {"series_id": ApplyQuery(series_id)}
         )
+        consuambles = ConsumableHandler.find_by_ids(consumables_ids)
+
         consumables_list = ConsumableList(
-            consumables,
+            consuambles,
             args["order_key"],
             args["reverse"],
             args["date_format"],
@@ -104,14 +111,28 @@ class ConsumableCommandHandler:
     @classmethod
     def personnel(cls, args: ConsumableChangePersonnelCommandArguments) -> str:
         # TODO: Can we just create personnel if they don't exist?
-        consumable_personnel = ConsumableHandler.change_personnel(
+        consumable_ids = ConsumableHandler.change_personnel(
             args["consumable_where"], args["personnel_where"], args["roles"]
         )
+        consumables = ConsumableHandler.find_by_ids(consumable_ids)
 
         return "\n\n".join(
             [
-                cp.consumable.name + "\n" + str(PersonnelRoleList(cp.personnel))
-                for cp in consumable_personnel
+                c.name
+                + "\n"
+                + str(
+                    PersonnelRoleList(
+                        list(
+                            map(
+                                lambda er: PersonnelRoles(
+                                    PersonnelHandler.find_by_id(er.id), er.roles
+                                ),
+                                ConsumableHandler.personnel(c.id),
+                            )
+                        )
+                    )
+                )
+                for c in consumables
             ]
         )
 

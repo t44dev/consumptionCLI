@@ -21,13 +21,16 @@ class SeriesCommandHandler:
     @classmethod
     def new(cls, args: SeriesNewArguments) -> str:
         # TODO: Can we do a check to see if something similar already exists?
-        series = SeriesHandler.new(**args["new"])
+        series_id = SeriesHandler.new(**args["new"])
+        series = SeriesHandler.find_by_id(series_id)
+
         series_list = SeriesList([series])
         return str(series_list)
 
     @classmethod
     def list(cls, args: WhereArguments) -> str:
         series = SeriesHandler.find(**args["where"])
+
         series_list = SeriesList(series)
         return str(series_list)
 
@@ -37,7 +40,9 @@ class SeriesCommandHandler:
         # TODO: Confirm update for multiple hits
         # TODO: What happens if none are found
         # TODO: Tagging
-        series = SeriesHandler.update(args["where"], args["apply"])
+        series_ids = SeriesHandler.update(args["where"], args["apply"])
+        series = SeriesHandler.find_by_ids(series_ids)
+
         series_list = SeriesList(series)
         return str(series_list)
 
@@ -45,8 +50,8 @@ class SeriesCommandHandler:
     def delete(cls, args: WhereArguments) -> str:
         # TODO: Confirm delete for multiple hits
         # TODO: How do we know how many are deleted?
-        SeriesHandler.delete(**args["where"])
-        return "Done"
+        series_deleted = SeriesHandler.delete(**args["where"])
+        return f"{series_deleted} Series deleted."
 
 
 # TODO: View command

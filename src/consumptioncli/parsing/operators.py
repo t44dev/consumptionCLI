@@ -43,6 +43,14 @@ num_where: WhereOperators = {
     "default_operator": WhereOperator.EQ,
 }
 
+tag_where: WhereOperators = {
+    "allowed_operators": {
+        WhereOperator.EQ,
+        WhereOperator.NEQ,
+    },
+    "default_operator": WhereOperator.EQ,
+}
+
 num_apply: ApplyOperators = {
     "allowed_operators": {
         ApplyOperator.APPLY,
@@ -52,7 +60,7 @@ num_apply: ApplyOperators = {
     "default_operator": ApplyOperator.APPLY,
 }
 
-role_apply: ApplyOperators = {
+role_tag_apply: ApplyOperators = {
     "allowed_operators": {
         ApplyOperator.APPLY,
         ApplyOperator.ADD,

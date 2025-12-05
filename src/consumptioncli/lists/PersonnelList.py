@@ -1,13 +1,13 @@
 # stdlib
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, final
+from typing import TYPE_CHECKING, Any, NamedTuple, final
 
 if TYPE_CHECKING:
     from _typeshed import SupportsRichComparison
 
 # consumable
-from consumptionbackend.entities import Personnel, PersonnelRoles
+from consumptionbackend.entities import Personnel
 from consumptioncli.utils import truncate
 from .list_handling import DisplayListBase, EntityList
 
@@ -56,6 +56,11 @@ class PersonnelList(EntityList[Personnel]):
 class PersonnelRoleOrderKey(StrEnum):
     NAME = "name"
     ROLE = "role"
+
+
+class PersonnelRoles(NamedTuple):
+    personnel: Personnel
+    roles: Sequence[str]
 
 
 @final

@@ -7,13 +7,19 @@ from typing import Any
 class BetterNamespace(Namespace, MutableMapping[str, Any]):
 
     def __getitem__(self, key: str, /) -> Any:
-        return getattr(self, key)
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
 
     def __setitem__(self, key: str, value: Any, /) -> None:
         setattr(self, key, value)
 
     def __delitem__(self, key: str, /) -> None:
-        delattr(self, key)
+        try:
+            delattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
 
     def __iter__(self) -> Iterator[str]:
         return iter(vars(self))

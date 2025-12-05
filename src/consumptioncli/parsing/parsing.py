@@ -3,14 +3,17 @@ from abc import ABC, abstractmethod
 from argparse import SUPPRESS, ArgumentParser
 
 # consumption
-from .operators import num_apply, num_where, standard_apply, str_where
+from .operators import num_apply, num_where, role_tag_apply, standard_apply, str_where, tag_where
 from .actions import SubStore
 from .types import (
     QueryType,
+    apply_query,
     consumable_status,
     datetime_placeholder,
     noneable,
     query_selector,
+    sequence,
+    where_query,
 )
 
 
@@ -125,6 +128,21 @@ class ParserBase(ABC):
             dest=f"{dest}.end_date",
             type=query_selector(
                 noneable(datetime_placeholder), query_type, num_where, num_apply
+            ),
+            action=SubStore,
+            default=SUPPRESS,
+        )
+        _ = group.add_argument(
+            f"--{prefix}tags",
+            dest=f"{dest}.tags",
+            type=sequence(
+                str
+                if query_type is QueryType.NEW
+                else (
+                    where_query(str, **tag_where)
+                    if query_type is QueryType.WHERE
+                    else apply_query(str, **role_tag_apply)
+                )
             ),
             action=SubStore,
             default=SUPPRESS,

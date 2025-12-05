@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 # consumption
 from consumptioncli.commands import ConsumableCommandHandler
 from consumptioncli.lists import ConsumableList, ConsumableOrderKey
-from .operators import role_apply
+from .operators import role_tag_apply
 from .BetterNamespace import BetterNamespace
 from .parsing import ParserBase
 from .types import QueryType, apply_query, closest_choice_index, sequence
@@ -178,7 +178,7 @@ class ConsumableChangePersonnelParser(ParserBase):
             f"-r",
             f"--role",
             dest=f"roles",
-            type=sequence(apply_query(str, **role_apply)),
+            type=sequence(apply_query(str, **role_tag_apply)),
             action=SubStore,
             required=True,
         )
