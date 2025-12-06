@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from typing import override
 
 from consumptioncli.commands import SeriesCommandHandler
-from consumptioncli.lists import SeriesList, SeriesOrderKey
+from consumptioncli.display.lists import SeriesList, SeriesOrderKey
 
 from .actions import SubStore
 from .BetterNamespace import BetterNamespace
@@ -20,6 +20,7 @@ class SeriesParser(ParserBase):
         SeriesListParser.setup(sub.add_parser("list", aliases=["l"]))
         SeriesUpdateParser.setup(sub.add_parser("update", aliases=["u"]))
         SeriesDeleteParser.setup(sub.add_parser("delete", aliases=["d"]))
+        SeriesViewParser.setup(sub.add_parser("view", aliases=["v"]))
 
     @classmethod
     def list_fields(cls, parser: ArgumentParser) -> None:
@@ -75,7 +76,6 @@ class SeriesUpdateParser(ParserBase):
         cls.series_fields(parser, "where.series", QueryType.WHERE, False, True)
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Force update
 
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
@@ -98,7 +98,13 @@ class SeriesDeleteParser(ParserBase):
         cls.series_fields(parser, "where.series", QueryType.WHERE, False, True)
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Force update
 
 
-# TODO: Add consumables
+class SeriesViewParser(ParserBase):
+    @override
+    @classmethod
+    def setup(cls, parser: ArgumentParser) -> None:
+        parser.set_defaults(handler=SeriesCommandHandler.view, where=BetterNamespace())
+        cls.series_fields(parser, "where.series", QueryType.WHERE, False, True)
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)

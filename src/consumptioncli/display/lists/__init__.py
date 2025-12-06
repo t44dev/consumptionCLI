@@ -5,6 +5,8 @@ from .PersonnelList import (
     PersonnelOrderKey,
     PersonnelRoleList,
     PersonnelRoleOrderKey,
+    ConsumableRoleList,
+    ConsumableRoleOrderKey,
 )
 from .SeriesList import SeriesList, SeriesOrderKey
 
@@ -14,8 +16,10 @@ __all__ = [
     "SeriesList",
     "PersonnelList",
     "PersonnelRoleList",
+    "ConsumableRoleList",
     "ConsumableOrderKey",
     "SeriesOrderKey",
     "PersonnelOrderKey",
     "PersonnelRoleOrderKey",
+    "ConsumableRoleOrderKey",
 ]

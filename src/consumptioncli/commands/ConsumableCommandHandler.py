@@ -11,8 +11,12 @@ from consumptionbackend.database import (
     WhereQuery,
 )
 
-from consumptioncli.lists import ConsumableList, PersonnelRoleList
-from consumptioncli.lists.PersonnelList import PersonnelRoles
+from consumptioncli.display.lists import (
+    ConsumableList,
+    PersonnelRoleList,
+)
+from consumptioncli.display.types import EntityRoles
+from consumptioncli.display.views.ConsumableView import ConsumableView
 from consumptioncli.utils import confirm_action, s
 
 from .database import ConsumableHandler, PersonnelHandler, SeriesHandler
@@ -109,8 +113,10 @@ class ConsumableCommandHandler:
         **_: Any,
     ) -> str:
         existing_series = SeriesHandler.find(**apply)
-        selected_series = None
+        if len(existing_series) == 0:
+            return "No matching Series."
 
+        selected_series = None
         if not force and len(existing_series) > 1:
             print(f"{len(existing_series)} matched Series.")
             for series in existing_series:
@@ -121,7 +127,9 @@ class ConsumableCommandHandler:
             if selected_series is None:
                 return "No Series selected."
 
-        selected_series = existing_series[0] if selected_series is None else selected_series
+        selected_series = (
+            existing_series[0] if selected_series is None else selected_series
+        )
         consumables_ids = ConsumableHandler.update(
             where, {"series_id": ApplyQuery(selected_series.id)}
         )
@@ -161,8 +169,8 @@ class ConsumableCommandHandler:
                     PersonnelRoleList(
                         list(
                             map(
-                                lambda er: PersonnelRoles(
-                                    PersonnelHandler.find_by_id(er.id), er.roles
+                                lambda ir: EntityRoles(
+                                    PersonnelHandler.find_by_id(ir.id), ir.roles
                                 ),
                                 ConsumableHandler.personnel(c.id),
                             )
@@ -173,5 +181,40 @@ class ConsumableCommandHandler:
             ]
         )
 
+    @classmethod
+    def view(
+        cls,
+        *,
+        force: bool,
+        date_format: str,
+        where: WhereMapping,
+        **_: Any,
+    ) -> str:
+        consumables = ConsumableHandler.find(**where)
+        if len(consumables) == 0:
+            return "No matching Consumable."
 
-# TODO: View command
+        selected_consumable = None
+        if not force and len(consumables) > 1:
+            print(f"{len(consumables)} matched Consumables.")
+            for c in consumables:
+                if confirm_action(f"viewing [{c.type}] {c.name}"):
+                    selected_consumable = c
+                    break
+
+            if selected_consumable is None:
+                return "No Consumable selected."
+
+        selected_consumable = (
+            consumables[0] if selected_consumable is None else selected_consumable
+        )
+
+        series = SeriesHandler.find_by_id(selected_consumable.series_id)
+        personnel = list(
+            map(
+                lambda ir: EntityRoles(PersonnelHandler.find_by_id(ir.id), ir.roles),
+                ConsumableHandler.personnel(selected_consumable.id),
+            )
+        )
+
+        return str(ConsumableView(selected_consumable, series, personnel, date_format))

@@ -66,9 +66,13 @@ class ConsumableList(EntityList[Consumable]):
             f"{element.parts}/{element.max_parts if element.max_parts is not None else '?'}",
             element.rating,
             element.completions,
-            element.status.name.replace("_", " "),
-            element.end_date.strftime(self.date_format) if element.end_date else "",
-            element.end_date.strftime(self.date_format) if element.end_date else "",
+            str(element.status),
+            element.start_date.strftime(self.date_format)
+            if element.start_date is not None
+            else "",
+            element.end_date.strftime(self.date_format)
+            if element.end_date is not None
+            else "",
         ]
 
     @override

@@ -9,10 +9,12 @@ from consumptionbackend.database import (
     WhereQuery,
 )
 
-from consumptioncli.lists import PersonnelList
+from consumptioncli.display.lists import PersonnelList
+from consumptioncli.display.types import EntityRoles
+from consumptioncli.display.views import PersonnelView
 from consumptioncli.utils import confirm_action
 
-from .database import PersonnelHandler
+from .database import ConsumableHandler, PersonnelHandler
 
 
 class PersonnelCommandHandler:
@@ -37,7 +39,7 @@ class PersonnelCommandHandler:
 
     @classmethod
     def list(
-        cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_
+        cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_: Any
     ) -> str:
         personnel = PersonnelHandler.find(**where)
 
@@ -82,5 +84,39 @@ class PersonnelCommandHandler:
         personnel_deleted = PersonnelHandler.delete(**where)
         return f"{personnel_deleted} Personnel deleted."
 
+    @classmethod
+    def view(
+        cls,
+        *,
+        force: bool,
+        date_format: str,
+        where: WhereMapping,
+        **_: Any,
+    ) -> str:
+        personnel = PersonnelHandler.find(**where)
+        if len(personnel) == 0:
+            return "No matching Personnel."
 
-# TODO: View command
+        selected_personnel = None
+        if not force and len(personnel) > 1:
+            print(f"{len(personnel)} matched Personnel.")
+            for p in personnel:
+                if confirm_action(f"viewing {p.full_name()}"):
+                    selected_personnel = p
+                    break
+
+            if selected_personnel is None:
+                return "No Personnel selected."
+
+        selected_personnel = (
+            personnel[0] if selected_personnel is None else selected_personnel
+        )
+
+        consumables = list(
+            map(
+                lambda ir: EntityRoles(ConsumableHandler.find_by_id(ir.id), ir.roles),
+                PersonnelHandler.consumables(selected_personnel.id),
+            )
+        )
+
+        return str(PersonnelView(selected_personnel, consumables, date_format))

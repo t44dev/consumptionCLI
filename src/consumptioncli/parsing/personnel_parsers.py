@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from typing import override
 
 from consumptioncli.commands import PersonnelCommandHandler
-from consumptioncli.lists import PersonnelList, PersonnelOrderKey
+from consumptioncli.display.lists import PersonnelList, PersonnelOrderKey
 
 from .actions import SubStore
 from .BetterNamespace import BetterNamespace
@@ -20,6 +20,7 @@ class PersonnelParser(ParserBase):
         PersonnelListParser.setup(sub.add_parser("list", aliases=["l"]))
         PersonnelUpdateParser.setup(sub.add_parser("update", aliases=["u"]))
         PersonnelDeleteParser.setup(sub.add_parser("delete", aliases=["d"]))
+        PersonnelViewParser.setup(sub.add_parser("view", aliases=["v"]))
 
     @classmethod
     def list_fields(cls, parser: ArgumentParser) -> None:
@@ -76,7 +77,6 @@ class PersonnelUpdateParser(ParserBase):
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)
-        # TODO: Force update
 
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
@@ -99,4 +99,15 @@ class PersonnelDeleteParser(ParserBase):
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)
-        # TODO: Force update
+
+
+class PersonnelViewParser(ParserBase):
+    @override
+    @classmethod
+    def setup(cls, parser: ArgumentParser) -> None:
+        parser.set_defaults(
+            handler=PersonnelCommandHandler.view, where=BetterNamespace()
+        )
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, True, True)

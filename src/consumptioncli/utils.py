@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from typing import Callable, TypeVar, final, override
 
 T = TypeVar("T")
@@ -66,3 +66,12 @@ def truncate(string: str, amount: int = 20) -> str:
 
 def s(count: int) -> str:
     return "s" if count != 1 else ""
+
+
+def unique[T](f: Callable[[T, T], bool], seq: Sequence[T]) -> Sequence[T]:
+    unique: MutableSequence[T] = []
+    for item in seq:
+        if not any([f(item, other) for other in unique]):
+            unique.append(item)
+
+    return unique

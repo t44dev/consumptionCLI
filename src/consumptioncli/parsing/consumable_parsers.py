@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from typing import override
 
 from consumptioncli.commands import ConsumableCommandHandler
-from consumptioncli.lists import ConsumableList, ConsumableOrderKey
+from consumptioncli.display.lists import ConsumableList, ConsumableOrderKey
 
 from .actions import SubStore
 from .BetterNamespace import BetterNamespace
@@ -25,6 +25,7 @@ class ConsumableParser(ParserBase):
         ConsumableChangePersonnelParser.setup(
             sub.add_parser("personnel", aliases=["p"])
         )
+        ConsumableViewParser.setup(sub.add_parser("view", aliases=["v"]))
 
     @classmethod
     def list_fields(cls, parser: ArgumentParser) -> None:
@@ -82,7 +83,6 @@ class ConsumableUpdateParser(ParserBase):
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Force update
 
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
@@ -105,7 +105,6 @@ class ConsumableDeleteParser(ParserBase):
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Force update
 
 
 class ConsumableApplySeriesParser(ParserBase):
@@ -119,7 +118,7 @@ class ConsumableApplySeriesParser(ParserBase):
         cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
         cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
         cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)
-        # TODO: Force update
+
         parser_apply = parser.add_subparsers(
             title="apply", dest="subapply", required=True
         ).add_parser(
@@ -141,7 +140,6 @@ class ConsumableChangePersonnelParser(ParserBase):
     @override
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
-        # TODO: Force update
         parser.set_defaults(
             handler=ConsumableCommandHandler.personnel,
             consumable_where=BetterNamespace(),
@@ -182,3 +180,15 @@ class ConsumableChangePersonnelParser(ParserBase):
             action=SubStore,
             required=True,
         )
+
+
+class ConsumableViewParser(ParserBase):
+    @override
+    @classmethod
+    def setup(cls, parser: ArgumentParser) -> None:
+        parser.set_defaults(
+            handler=ConsumableCommandHandler.view, where=BetterNamespace()
+        )
+        cls.consumable_fields(parser, "where.consumable", QueryType.WHERE, False, True)
+        cls.series_fields(parser, "where.series", QueryType.WHERE, True, True)
+        cls.personnel_fields(parser, "where.personnel", QueryType.WHERE, True, True)

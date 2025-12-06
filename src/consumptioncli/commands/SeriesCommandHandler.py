@@ -1,5 +1,6 @@
 from enum import StrEnum
 from typing import Any, cast
+
 from consumptionbackend.database import (
     SeriesApplyMapping,
     SeriesFieldsRequired,
@@ -8,7 +9,8 @@ from consumptionbackend.database import (
     WhereQuery,
 )
 
-from consumptioncli.lists import SeriesList
+from consumptioncli.display.lists import SeriesList
+from consumptioncli.display.views import SeriesView
 from consumptioncli.utils import confirm_action
 
 from .command_handling import CommandArgumentsBase, WhereArguments
@@ -45,7 +47,7 @@ class SeriesCommandHandler:
 
     @classmethod
     def list(
-        cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_
+        cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_: Any
     ) -> str:
         series = SeriesHandler.find(**where)
 
@@ -90,5 +92,31 @@ class SeriesCommandHandler:
         series_deleted = SeriesHandler.delete(**where)
         return f"{series_deleted} Series deleted."
 
+    @classmethod
+    def view(
+        cls,
+        *,
+        force: bool,
+        where: WhereMapping,
+        **_: Any,
+    ) -> str:
+        series = SeriesHandler.find(**where)
+        if len(series) == 0:
+            return "No matching Series."
 
-# TODO: View command
+        selected_series = None
+        if not force and len(series) > 1:
+            print(f"{len(series)} matched Series.")
+            for s in series:
+                if confirm_action(f"viewing {s.name}"):
+                    selected_series = s
+                    break
+
+            if selected_series is None:
+                return "No Series selected."
+
+        selected_series = series[0] if selected_series is None else selected_series
+
+        consumables = SeriesHandler.consumables(selected_series.id)
+
+        return str(SeriesView(selected_series, consumables))
