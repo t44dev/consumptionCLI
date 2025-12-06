@@ -1,7 +1,5 @@
 from collections.abc import MutableSequence, Sequence
-from typing import Callable, TypeVar, final, override
-
-T = TypeVar("T")
+from typing import Callable, final, override
 
 
 @final
@@ -18,7 +16,7 @@ UNCHANGED_SENTINEL = _SentinelClass("Leave Unchanged")
 NONE_SENTINEL = _SentinelClass("None")
 
 
-def sort_by(instances: Sequence[T], sort_key: str, reverse: bool = False) -> list[T]:
+def sort_by[T](instances: Sequence[T], sort_key: str, reverse: bool = False) -> list[T]:
     # Thanks to Andrew Clark for solution to sorting list with NoneTypes https://stackoverflow.com/a/18411610
     return sorted(
         instances,
@@ -27,7 +25,7 @@ def sort_by(instances: Sequence[T], sort_key: str, reverse: bool = False) -> lis
     )
 
 
-def request_input(
+def request_input[T](
     name: str,
     default: T = NONE_SENTINEL,
     validator: Callable[[str | T], bool] | None = None,

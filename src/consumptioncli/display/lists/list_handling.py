@@ -1,17 +1,15 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import Any, Generic, TypeVar, override
+from typing import Any, override
 
 from consumptionbackend.entities import EntityBase
 from tabulate import tabulate
 
 from consumptioncli.utils import s
 
-T = TypeVar("T")
 
-
-class DisplayListBase(ABC, Generic[T]):
+class DisplayListBase[T](ABC):
     def __init__(
         self,
         elements: Sequence[T],
@@ -64,16 +62,12 @@ class DisplayListBase(ABC, Generic[T]):
         ) + f"{len(rows)} Result{s(len(rows))}..."
 
 
-# TODO: 3.12 Generic handling
-E = TypeVar("E", bound=EntityBase)
-
-
 class EntityOrderKey(StrEnum):
     INDEX = "index"
     ID = "id"
 
 
-class EntityList(DisplayListBase[E], Generic[E]):
+class EntityList[E: EntityBase](DisplayListBase[E]):
     def __init__(
         self,
         entities: Sequence[E],

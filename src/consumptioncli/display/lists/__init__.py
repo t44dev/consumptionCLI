@@ -1,12 +1,12 @@
 from .ConsumableList import ConsumableList, ConsumableOrderKey
 from .list_handling import EntityList
 from .PersonnelList import (
+    ConsumableRoleList,
+    ConsumableRoleOrderKey,
     PersonnelList,
     PersonnelOrderKey,
     PersonnelRoleList,
     PersonnelRoleOrderKey,
-    ConsumableRoleList,
-    ConsumableRoleOrderKey,
 )
 from .SeriesList import SeriesList, SeriesOrderKey
 

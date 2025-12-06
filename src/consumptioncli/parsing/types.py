@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from difflib import get_close_matches
 from enum import IntEnum
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 from consumptionbackend.database import (
     ApplyOperator,
@@ -15,8 +15,6 @@ from consumptionbackend.database import (
 from consumptionbackend.entities import Status
 
 from .operators import ApplyOperators, WhereOperators
-
-T = TypeVar("T")
 
 
 class QueryType(IntEnum):
@@ -51,7 +49,7 @@ def consumable_status(value: str) -> Status:
 # Wrappers
 
 
-def sequence(fn: Callable[[str], T]) -> Callable[[str], Sequence[T]]:
+def sequence[T](fn: Callable[[str], T]) -> Callable[[str], Sequence[T]]:
     def convert_sequence(value: str) -> Sequence[T]:
         values = value.split(",")
         return [fn(e) for e in values]
@@ -59,13 +57,13 @@ def sequence(fn: Callable[[str], T]) -> Callable[[str], Sequence[T]]:
     return convert_sequence
 
 
-def noneable(fn: Callable[[str], T]) -> Callable[[str], T | None]:
+def noneable[T](fn: Callable[[str], T]) -> Callable[[str], T | None]:
     return lambda value: (
         fn(value) if value.lower() not in ["?", "null", "none"] else None
     )
 
 
-def closest_choice_index(
+def closest_choice_index[T](
     fn: Callable[[int], T], choices: Sequence[str]
 ) -> Callable[[str], T]:
     choices_lower = [c.lower() for c in choices]
@@ -77,7 +75,7 @@ def closest_choice_index(
     return convert_closest_choice_index
 
 
-def query_selector(
+def query_selector[T](
     type: Callable[[str], T],
     query_type: QueryType,
     where_operators: WhereOperators,
@@ -105,7 +103,7 @@ where_operator_map: Mapping[WhereOperator, str] = {
 }
 
 
-def where_query(
+def where_query[T](
     fn: Callable[[str], T],
     allowed_operators: Set[WhereOperator],
     default_operator: WhereOperator,
@@ -143,7 +141,7 @@ apply_operator_map: Mapping[ApplyOperator, str] = {
 }
 
 
-def apply_query(
+def apply_query[T](
     fn: Callable[[str], T],
     allowed_operators: Set[ApplyOperator],
     default_operator: ApplyOperator,
