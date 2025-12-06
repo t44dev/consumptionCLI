@@ -4,7 +4,8 @@ from typing import Any, final, override
 
 from consumptionbackend.entities import Consumable
 
-from consumptioncli.utils import truncate
+from consumptioncli.constants import DEFAULT_DATE_FORMAT
+from consumptioncli.display.formatting import q, truncate
 
 from .list_handling import EntityList
 
@@ -28,7 +29,7 @@ class ConsumableList(EntityList[Consumable]):
         entities: Sequence[Consumable],
         order_key: StrEnum = ConsumableOrderKey.RATING,
         reverse: bool = False,
-        date_format: str = r"%Y/%m/%d",
+        date_format: str = DEFAULT_DATE_FORMAT,
     ) -> None:
         super().__init__(
             entities,
@@ -63,7 +64,7 @@ class ConsumableList(EntityList[Consumable]):
             *super()._row(index, element),
             element.type,
             truncate(element.name),
-            f"{element.parts}/{element.max_parts if element.max_parts is not None else '?'}",
+            f"{element.parts}/{q(element.max_parts)}",
             element.rating,
             element.completions,
             str(element.status),

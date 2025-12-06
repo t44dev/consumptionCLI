@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 from typing import override
 
+from consumptioncli.constants import DEFAULT_DATE_FORMAT
+
 from .actions import SubStore
 from .consumable_parsers import ConsumableParser
 from .parsing import ParserBase
@@ -32,9 +34,9 @@ class MainParser(ParserBase):
             "-df",
             "--dateformat",
             dest="date_format",
-            default=r"%Y/%m/%d",
+            default=DEFAULT_DATE_FORMAT,
             metavar="FORMAT",
-            help="date format string, e.g %%Y/%%m/%%d",
+            help=f"date format string, e.g {DEFAULT_DATE_FORMAT.replace('%', '%%')}",
             action=SubStore,
         )
 

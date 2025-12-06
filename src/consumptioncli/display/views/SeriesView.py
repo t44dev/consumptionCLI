@@ -4,14 +4,23 @@ from typing import override
 
 from consumptionbackend.entities import Consumable, Series
 
+from consumptioncli.constants import DEFAULT_DATE_FORMAT
+from consumptioncli.display.formatting import q
 from consumptioncli.display.lists import ConsumableList
+from consumptioncli.display.stats import (
+    average_rating,
+    global_end_date,
+    global_start_date,
+    total_max_parts,
+    total_parts,
+)
 
 
 @dataclass(frozen=True)
 class SeriesView:
     series: Series
     consumables: Sequence[Consumable]
-    date_format: str = r"%Y/%m/%d"
+    date_format: str = DEFAULT_DATE_FORMAT
 
     @override
     def __str__(self) -> str:
@@ -35,31 +44,16 @@ class SeriesView:
         if len(cs) == 0:
             return []
 
-        ratings = [c.rating for c in cs if c.rating is not None]
-        average_rating = sum(ratings) / len(ratings) if len(ratings) > 0 else None
-
-        first_start_date = (
-            min([c.start_date for c in cs if c.start_date is not None])
-            if any([c.start_date is not None for c in cs])
-            else None
-        )
-        final_end_date = (
-            min([c.start_date for c in cs if c.start_date is not None])
-            if all([c.start_date is not None for c in cs])
-            else None
-        )
-
-        total_parts = sum([c.parts for c in cs])
-        total_max_parts = (
-            sum([c.max_parts for c in cs if c.max_parts is not None])
-            if any([c.max_parts is not None for c in cs])
-            else None
-        )
+        rating = average_rating(cs)
+        start_date = global_start_date(cs)
+        end_date = global_end_date(cs)
+        parts = total_parts(cs)
+        max_parts = total_max_parts(cs)
 
         return [
-            f"Average Rating {average_rating if average_rating is not None else '?'}",
-            f"{first_start_date.strftime(date_format) if first_start_date is not None else '?'} - {final_end_date.strftime(date_format) if final_end_date is not None else '?'}",
-            f"{total_parts}/{total_max_parts if total_max_parts is not None else '?'} Parts",
+            f"Average Rating {q(rating)}",
+            f"{q(start_date, lambda x: x.strftime(date_format))} - {q(end_date, lambda x: x.strftime(date_format))}",
+            f"{parts}/{q(max_parts)} Parts",
         ]
 
     @classmethod

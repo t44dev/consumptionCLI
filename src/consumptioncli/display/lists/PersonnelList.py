@@ -4,8 +4,8 @@ from typing import Any, final, override
 
 from consumptionbackend.entities import Consumable, Personnel
 
+from consumptioncli.display.formatting import truncate
 from consumptioncli.display.types import EntityRoles
-from consumptioncli.utils import truncate
 
 from .list_handling import DisplayListBase, EntityList
 

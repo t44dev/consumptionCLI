@@ -4,6 +4,8 @@ from typing import override
 
 from consumptionbackend.entities import Consumable, Personnel, Series
 
+from consumptioncli.constants import DEFAULT_DATE_FORMAT
+from consumptioncli.display.formatting import q
 from consumptioncli.display.lists import PersonnelRoleList
 from consumptioncli.display.types import EntityRoles
 
@@ -13,7 +15,7 @@ class ConsumableView:
     consumable: Consumable
     series: Series
     personnel: Sequence[EntityRoles[Personnel]]
-    date_format: str = r"%Y/%m/%d"
+    date_format: str = DEFAULT_DATE_FORMAT
 
     @override
     def __str__(self) -> str:
@@ -39,18 +41,13 @@ class ConsumableView:
     def _stats(cls, c: Consumable, date_format: str) -> Sequence[str]:
         sections = [
             f"{f'Rated {c.rating} - ' if c.rating is not None else ''}{c.completions} Completions",
+            f"{c.start_date.strftime(date_format)} - {q(c.end_date, lambda x: x.strftime(date_format))}"
+            if c.start_date is not None
+            else None,
+            f"{c.status} - {c.parts}/{q(c.max_parts)} Parts",
         ]
 
-        if c.start_date is not None:
-            sections.append(
-                f"{c.start_date.strftime(date_format)} - {c.end_date.strftime(date_format) if c.end_date else '?'}"
-            )
-
-        sections.append(
-            f"{c.status} - {c.parts}/{c.max_parts if c.max_parts is not None else '?'} Parts"
-        )
-
-        return sections
+        return [section for section in sections if section is not None]
 
     @classmethod
     def _personnel(cls, p: Sequence[EntityRoles[Personnel]]) -> Sequence[str]:

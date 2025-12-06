@@ -1,23 +1,40 @@
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import Any, cast
+from typing import Any
 
 from consumptionbackend.database import (
     ApplyQuery,
     ConsumableApplyMapping,
     ConsumableFieldsRequired,
-    ConsumableWhereMapping,
     WhereMapping,
-    WhereQuery,
+    consumable_required_to_where,
 )
+from consumptionbackend.entities import Consumable, Personnel, Series
 
+from consumptioncli.commands.input import (
+    confirm_existing,
+    confirm_many,
+    select_one,
+)
+from consumptioncli.commands.messages import (
+    NO_UPDATES,
+    cancelled_deletion,
+    cancelled_new,
+    cancelled_relation_update,
+    cancelled_update,
+    change,
+    delete_many,
+    deleted,
+    no_matching,
+    none_selected,
+    update_many,
+)
 from consumptioncli.display.lists import (
     ConsumableList,
     PersonnelRoleList,
 )
 from consumptioncli.display.types import EntityRoles
 from consumptioncli.display.views.ConsumableView import ConsumableView
-from consumptioncli.utils import confirm_action, s
 
 from .database import ConsumableHandler, PersonnelHandler, SeriesHandler
 
@@ -28,15 +45,9 @@ class ConsumableCommandHandler:
         cls, *, force: bool, date_format: str, new: ConsumableFieldsRequired, **_: Any
     ) -> str:
         if not force:
-            where: ConsumableWhereMapping = cast(
-                ConsumableWhereMapping,
-                cast(object, {k: [WhereQuery(v)] for k, v in new.items()}),
-            )
-            existing = len(ConsumableHandler.find(consumables=where))
-            if existing > 0:
-                print(f"{existing} similar Consumable{s(existing)} found.")
-                if not confirm_action("creation"):
-                    return "Consumable creation cancelled."
+            existing = len(ConsumableHandler.find(*consumable_required_to_where(new)))
+            if not confirm_existing(Consumable, existing):
+                return cancelled_new(Consumable)
 
         consumable_id = ConsumableHandler.new(**new)
         consumable = ConsumableHandler.find_by_id(consumable_id)
@@ -72,16 +83,13 @@ class ConsumableCommandHandler:
         **_: Any,
     ) -> str:
         if len(apply) == 0:
-            return "No updates specified."
+            return NO_UPDATES
 
         if not force:
             consumables = len(ConsumableHandler.find(**where))
-            if consumables > 1 and not confirm_action(
-                f"update of {consumables} Consumables"
-            ):
-                return "Consumable update cancelled."
+            if not confirm_many(consumables, update_many(Consumable, consumables)):
+                return cancelled_update(Consumable)
 
-        # TODO: What happens if none are found
         consumable_ids = ConsumableHandler.update(where, apply)
         consumables = ConsumableHandler.find_by_ids(consumable_ids)
 
@@ -91,14 +99,12 @@ class ConsumableCommandHandler:
     @classmethod
     def delete(cls, *, force: bool, where: WhereMapping, **_: Any) -> str:
         if not force:
-            existing = len(ConsumableHandler.find(**where))
-            if existing > 1:
-                print(f"{existing} Consumable{s(existing)} found.")
-                if not confirm_action("deletion"):
-                    return "Consumable deletion cancelled."
+            consumables = len(ConsumableHandler.find(**where))
+            if not confirm_many(consumables, delete_many(Consumable, consumables)):
+                return cancelled_deletion(Consumable)
 
         consumables_deleted = ConsumableHandler.delete(**where)
-        return f"{consumables_deleted} Consumables deleted."
+        return deleted(Consumable, consumables_deleted)
 
     @classmethod
     def series(
@@ -112,24 +118,18 @@ class ConsumableCommandHandler:
         apply: WhereMapping,
         **_: Any,
     ) -> str:
-        existing_series = SeriesHandler.find(**apply)
-        if len(existing_series) == 0:
-            return "No matching Series."
+        series = SeriesHandler.find(**apply)
+        if len(series) == 0:
+            return no_matching(Series)
 
-        selected_series = None
-        if not force and len(existing_series) > 1:
-            print(f"{len(existing_series)} matched Series.")
-            for series in existing_series:
-                if confirm_action(f"usage of [{series.id}] {series.name}"):
-                    selected_series = series
-                    break
+        if not force:
+            selected_series = select_one(series)
+        else:
+            selected_series = series[0]
 
-            if selected_series is None:
-                return "No Series selected."
+        if selected_series is None:
+            return none_selected(Series)
 
-        selected_series = (
-            existing_series[0] if selected_series is None else selected_series
-        )
         consumables_ids = ConsumableHandler.update(
             where, {"series_id": ApplyQuery(selected_series.id)}
         )
@@ -150,10 +150,10 @@ class ConsumableCommandHandler:
     ) -> str:
         if not force:
             consumables = len(ConsumableHandler.find(**consumable_where))
-            if consumables > 1 and not confirm_action(
-                f"change of Personnel for {consumables} Consumables"
+            if not confirm_many(
+                consumables, change(Personnel, Consumable, consumables)
             ):
-                return "Consumable Personnel update cancelled."
+                return cancelled_relation_update(Consumable, Personnel)
 
         # TODO: Just create Personnel if one doesn't exist?
         consumable_ids = ConsumableHandler.change_personnel(
@@ -192,22 +192,15 @@ class ConsumableCommandHandler:
     ) -> str:
         consumables = ConsumableHandler.find(**where)
         if len(consumables) == 0:
-            return "No matching Consumable."
+            return no_matching(Consumable)
 
-        selected_consumable = None
-        if not force and len(consumables) > 1:
-            print(f"{len(consumables)} matched Consumables.")
-            for c in consumables:
-                if confirm_action(f"viewing [{c.type}] {c.name}"):
-                    selected_consumable = c
-                    break
+        if not force:
+            selected_consumable = select_one(consumables)
+        else:
+            selected_consumable = consumables[0]
 
-            if selected_consumable is None:
-                return "No Consumable selected."
-
-        selected_consumable = (
-            consumables[0] if selected_consumable is None else selected_consumable
-        )
+        if selected_consumable is None:
+            return none_selected(Consumable)
 
         series = SeriesHandler.find_by_id(selected_consumable.series_id)
         personnel = list(

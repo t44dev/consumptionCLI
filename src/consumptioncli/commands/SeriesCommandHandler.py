@@ -1,43 +1,43 @@
 from enum import StrEnum
-from typing import Any, cast
+from typing import Any
 
 from consumptionbackend.database import (
     SeriesApplyMapping,
     SeriesFieldsRequired,
-    SeriesWhereMapping,
     WhereMapping,
-    WhereQuery,
+    series_required_to_where,
 )
+from consumptionbackend.entities import Series
 
+from consumptioncli.commands.input import (
+    confirm_existing,
+    confirm_many,
+    select_one,
+)
+from consumptioncli.commands.messages import (
+    NO_UPDATES,
+    cancelled_deletion,
+    cancelled_new,
+    cancelled_update,
+    delete_many,
+    deleted,
+    no_matching,
+    none_selected,
+    update_many,
+)
 from consumptioncli.display.lists import SeriesList
 from consumptioncli.display.views import SeriesView
-from consumptioncli.utils import confirm_action
 
-from .command_handling import CommandArgumentsBase, WhereArguments
 from .database import SeriesHandler
-
-
-class SeriesNewArguments(CommandArgumentsBase):
-    new: SeriesFieldsRequired
-
-
-class SeriesUpdateArguments(WhereArguments):
-    apply: SeriesApplyMapping
 
 
 class SeriesCommandHandler:
     @classmethod
     def new(cls, *, force: bool, new: SeriesFieldsRequired, **_: Any) -> str:
         if not force:
-            where: SeriesWhereMapping = cast(
-                SeriesWhereMapping,
-                cast(object, {k: [WhereQuery(v)] for k, v in new.items()}),
-            )
-            existing = len(SeriesHandler.find(series=where))
-            if existing > 0:
-                print(f"{existing} similar Series found.")
-                if not confirm_action("creation"):
-                    return "Series creation cancelled."
+            existing = len(SeriesHandler.find(*series_required_to_where(new)))
+            if not confirm_existing(Series, existing):
+                return cancelled_new(Series)
 
         series_id = SeriesHandler.new(**new)
         series = SeriesHandler.find_by_id(series_id)
@@ -66,14 +66,13 @@ class SeriesCommandHandler:
         **_: Any,
     ) -> str:
         if len(apply) == 0:
-            return "No updates specified."
+            return NO_UPDATES
 
         if not force:
             series = len(SeriesHandler.find(**where))
-            if series > 1 and not confirm_action(f"update of {series} Series"):
-                return "Series update cancelled."
+            if not confirm_many(series, update_many(Series, series)):
+                return cancelled_update(Series)
 
-        # TODO: What happens if none are found
         series_ids = SeriesHandler.update(where, apply)
         series = SeriesHandler.find_by_ids(series_ids)
 
@@ -83,14 +82,12 @@ class SeriesCommandHandler:
     @classmethod
     def delete(cls, *, force: bool, where: WhereMapping, **_: Any) -> str:
         if not force:
-            existing = len(SeriesHandler.find(**where))
-            if existing > 1:
-                print(f"{existing} Series found.")
-                if not confirm_action("deletion"):
-                    return "Series deletion cancelled."
+            series = len(SeriesHandler.find(**where))
+            if not confirm_many(series, delete_many(Series, series)):
+                return cancelled_deletion(Series)
 
         series_deleted = SeriesHandler.delete(**where)
-        return f"{series_deleted} Series deleted."
+        return deleted(Series, series_deleted)
 
     @classmethod
     def view(
@@ -102,20 +99,15 @@ class SeriesCommandHandler:
     ) -> str:
         series = SeriesHandler.find(**where)
         if len(series) == 0:
-            return "No matching Series."
+            return no_matching(Series)
 
-        selected_series = None
-        if not force and len(series) > 1:
-            print(f"{len(series)} matched Series.")
-            for s in series:
-                if confirm_action(f"viewing {s.name}"):
-                    selected_series = s
-                    break
+        if not force:
+            selected_series = select_one(series)
+        else:
+            selected_series = series[0]
 
-            if selected_series is None:
-                return "No Series selected."
-
-        selected_series = series[0] if selected_series is None else selected_series
+        if selected_series is None:
+            return none_selected(Series)
 
         consumables = SeriesHandler.consumables(selected_series.id)
 

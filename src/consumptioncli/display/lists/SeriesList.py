@@ -4,7 +4,7 @@ from typing import Any, final, override
 
 from consumptionbackend.entities import Series
 
-from consumptioncli.utils import truncate
+from consumptioncli.display.formatting import truncate
 
 from .list_handling import EntityList
 

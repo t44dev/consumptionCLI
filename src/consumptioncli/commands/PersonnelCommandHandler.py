@@ -1,18 +1,33 @@
 from enum import StrEnum
-from typing import Any, cast
+from typing import Any
 
 from consumptionbackend.database import (
     PersonnelApplyMapping,
     PersonnelFieldsRequired,
-    PersonnelWhereMapping,
     WhereMapping,
-    WhereQuery,
+    personnel_required_to_where,
 )
+from consumptionbackend.entities import Personnel
 
+from consumptioncli.commands.input import (
+    confirm_existing,
+    confirm_many,
+    select_one,
+)
+from consumptioncli.commands.messages import (
+    NO_UPDATES,
+    cancelled_deletion,
+    cancelled_new,
+    cancelled_update,
+    delete_many,
+    deleted,
+    no_matching,
+    none_selected,
+    update_many,
+)
 from consumptioncli.display.lists import PersonnelList
 from consumptioncli.display.types import EntityRoles
 from consumptioncli.display.views import PersonnelView
-from consumptioncli.utils import confirm_action
 
 from .database import ConsumableHandler, PersonnelHandler
 
@@ -21,15 +36,9 @@ class PersonnelCommandHandler:
     @classmethod
     def new(cls, *, force: bool, new: PersonnelFieldsRequired, **_: Any) -> str:
         if not force:
-            where: PersonnelWhereMapping = cast(
-                PersonnelWhereMapping,
-                cast(object, {k: [WhereQuery(v)] for k, v in new.items()}),
-            )
-            existing = len(PersonnelHandler.find(personnel=where))
-            if existing > 0:
-                print(f"{existing} similar Personnel found.")
-                if not confirm_action("creation"):
-                    return "Personnel creation cancelled."
+            existing = len(PersonnelHandler.find(*personnel_required_to_where(new)))
+            if not confirm_existing(Personnel, existing):
+                return cancelled_new(Personnel)
 
         personnel_id = PersonnelHandler.new(**new)
         personnel = PersonnelHandler.find_by_id(personnel_id)
@@ -58,14 +67,13 @@ class PersonnelCommandHandler:
         **_: Any,
     ) -> str:
         if len(apply) == 0:
-            return "No updates specified."
+            return NO_UPDATES
 
         if not force:
             personnel = len(PersonnelHandler.find(**where))
-            if personnel > 1 and not confirm_action(f"update of {personnel} Personnel"):
-                return "Personnel update cancelled."
+            if not confirm_many(personnel, update_many(Personnel, personnel)):
+                return cancelled_update(Personnel)
 
-        # TODO: What happens if none are found
         personnel_ids = PersonnelHandler.update(where, apply)
         personnel = PersonnelHandler.find_by_ids(personnel_ids)
 
@@ -75,14 +83,12 @@ class PersonnelCommandHandler:
     @classmethod
     def delete(cls, *, force: bool, where: WhereMapping, **_: Any) -> str:
         if not force:
-            existing = len(PersonnelHandler.find(**where))
-            if existing > 1:
-                print(f"{existing} Personnel found.")
-                if not confirm_action("deletion"):
-                    return "Personnel deletion cancelled."
+            personnel = len(PersonnelHandler.find(**where))
+            if not confirm_many(personnel, delete_many(Personnel, personnel)):
+                return cancelled_deletion(Personnel)
 
         personnel_deleted = PersonnelHandler.delete(**where)
-        return f"{personnel_deleted} Personnel deleted."
+        return deleted(Personnel, personnel_deleted)
 
     @classmethod
     def view(
@@ -95,28 +101,21 @@ class PersonnelCommandHandler:
     ) -> str:
         personnel = PersonnelHandler.find(**where)
         if len(personnel) == 0:
-            return "No matching Personnel."
+            return no_matching(Personnel)
 
-        selected_personnel = None
-        if not force and len(personnel) > 1:
-            print(f"{len(personnel)} matched Personnel.")
-            for p in personnel:
-                if confirm_action(f"viewing {p.full_name()}"):
-                    selected_personnel = p
-                    break
+        if not force:
+            selected_personnel = select_one(personnel)
+        else:
+            selected_personnel = personnel[0]
 
-            if selected_personnel is None:
-                return "No Personnel selected."
+        if selected_personnel is None:
+            return none_selected(Personnel)
 
-        selected_personnel = (
-            personnel[0] if selected_personnel is None else selected_personnel
-        )
-
-        consumables = list(
+        personnel = list(
             map(
                 lambda ir: EntityRoles(ConsumableHandler.find_by_id(ir.id), ir.roles),
                 PersonnelHandler.consumables(selected_personnel.id),
             )
         )
 
-        return str(PersonnelView(selected_personnel, consumables, date_format))
+        return str(PersonnelView(selected_personnel, personnel, date_format))

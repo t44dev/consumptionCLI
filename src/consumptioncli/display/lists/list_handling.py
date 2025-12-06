@@ -6,7 +6,7 @@ from typing import Any, override
 from consumptionbackend.entities import EntityBase
 from tabulate import tabulate
 
-from consumptioncli.utils import s
+from consumptioncli.display.formatting import s
 
 
 class DisplayListBase[T](ABC):
