@@ -31,8 +31,7 @@ class ParserBase(ABC):
 
     @classmethod
     @abstractmethod
-    def setup(cls, parser: ArgumentParser) -> None:
-        pass
+    def setup(cls, parser: ArgumentParser) -> None: ...
 
     @classmethod
     def consumable_fields(

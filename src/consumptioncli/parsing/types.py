@@ -35,7 +35,7 @@ def consumable_status(value: str) -> Status:
             if int_val == int(s):
                 return s
         except ValueError:
-            pass
+            ...
 
         # Accept prefix/full name with any casing
         if s.name.lower().startswith(value.lower()):

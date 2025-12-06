@@ -32,23 +32,19 @@ class DisplayListBase[T](ABC):
 
     @classmethod
     @abstractmethod
-    def order_keys(cls) -> Sequence[StrEnum]:
-        pass
+    def order_keys(cls) -> Sequence[StrEnum]: ...
 
     @classmethod
     @abstractmethod
-    def _headers(cls) -> Sequence[str]:
-        pass
+    def _headers(cls) -> Sequence[str]: ...
 
     @abstractmethod
-    def _row(self, index: int, element: T) -> Sequence[Any]:
-        pass
+    def _row(self, index: int, element: T) -> Sequence[Any]: ...
 
     @abstractmethod
     def _order_key_to_value(
         self, index: int, element: T, order_key: StrEnum
-    ) -> Any | None:
-        pass
+    ) -> Any | None: ...
 
     @override
     def __str__(self) -> str:
