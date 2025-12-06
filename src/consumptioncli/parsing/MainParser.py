@@ -22,6 +22,13 @@ class MainParser(ParserBase):
     @classmethod
     def setup(cls, parser: ArgumentParser) -> None:
         _ = parser.add_argument(
+            "-f",
+            "--force",
+            dest="force",
+            default=False,
+            action="store_true",
+        )
+        _ = parser.add_argument(
             "-df",
             "--dateformat",
             dest="date_format",

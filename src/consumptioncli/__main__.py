@@ -1,6 +1,8 @@
 from argparse import ArgumentError
 from sys import exit, stderr
 
+from consumptionbackend.utils.exceptions import NoValuesException
+
 from .parsing import BetterNamespace, MainParser, post_process
 
 
@@ -9,9 +11,9 @@ def main() -> int:
         main_parser = MainParser.get()
         args = main_parser.parse_args(namespace=BetterNamespace())
         args = post_process(args, getattr(args, "date_format"))
-        print(getattr(args, "handler")(args))
+        print(getattr(args, "handler")(**args))
         return 0
-    except ArgumentError as e:
+    except (ArgumentError, NoValuesException) as e:
         print(e.message, file=stderr)
         return 1
 

@@ -6,6 +6,8 @@ from typing import Any, Generic, TypeVar, override
 from consumptionbackend.entities import EntityBase
 from tabulate import tabulate
 
+from consumptioncli.utils import s
+
 T = TypeVar("T")
 
 
@@ -57,7 +59,9 @@ class DisplayListBase(ABC, Generic[T]):
         rows = [self._row(i, e) for i, e in enumerate(self.elements)]
         # TODO: Table styles
         # TODO: Fork tabulate for footer line
-        return tabulate(rows, headers)
+        return (
+            tabulate(rows, headers) + "\n" if len(rows) > 0 else ""
+        ) + f"{len(rows)} Result{s(len(rows))}..."
 
 
 # TODO: 3.12 Generic handling

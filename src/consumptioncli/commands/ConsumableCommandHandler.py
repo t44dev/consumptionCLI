@@ -1,125 +1,161 @@
 from collections.abc import Sequence
 from enum import StrEnum
+from typing import Any, cast
 
 from consumptionbackend.database import (
     ApplyQuery,
     ConsumableApplyMapping,
     ConsumableFieldsRequired,
+    ConsumableWhereMapping,
     WhereMapping,
+    WhereQuery,
 )
-from consumptionbackend.database.sqlite import PersonnelHandler, SeriesHandler
 
 from consumptioncli.lists import ConsumableList, PersonnelRoleList
 from consumptioncli.lists.PersonnelList import PersonnelRoles
+from consumptioncli.utils import confirm_action, s
 
-from .command_handling import CommandArgumentsBase, WhereArguments
-from .database import ConsumableHandler
-
-
-class ConsumableNewCommandArguments(CommandArgumentsBase):
-    new: ConsumableFieldsRequired
-
-
-class ConsumableListCommandArguments(WhereArguments):
-    order_key: StrEnum
-    reverse: bool
-
-
-class ConsumableUpdateCommandArguments(WhereArguments):
-    apply: ConsumableApplyMapping
-    order_key: StrEnum
-    reverse: bool
-
-
-class ConsumableSeriesCommandArguments(WhereArguments):
-    apply: WhereMapping
-    order_key: StrEnum
-    reverse: bool
-
-
-class ConsumableChangePersonnelCommandArguments(CommandArgumentsBase):
-    consumable_where: WhereMapping
-    personnel_where: WhereMapping
-    roles: Sequence[ApplyQuery[str]]
+from .database import ConsumableHandler, PersonnelHandler, SeriesHandler
 
 
 class ConsumableCommandHandler:
     @classmethod
-    def new(cls, args: ConsumableNewCommandArguments) -> str:
-        # TODO: Can we do a check to see if something similar already exists?
-        consumable_id = ConsumableHandler.new(**args["new"])
+    def new(
+        cls, *, force: bool, date_format: str, new: ConsumableFieldsRequired, **_: Any
+    ) -> str:
+        if not force:
+            where: ConsumableWhereMapping = cast(
+                ConsumableWhereMapping,
+                cast(object, {k: [WhereQuery(v)] for k, v in new.items()}),
+            )
+            existing = len(ConsumableHandler.find(consumables=where))
+            if existing > 0:
+                print(f"{existing} similar Consumable{s(existing)} found.")
+                if not confirm_action("creation"):
+                    return "Consumable creation cancelled."
+
+        consumable_id = ConsumableHandler.new(**new)
         consumable = ConsumableHandler.find_by_id(consumable_id)
 
-        consumables_list = ConsumableList(
-            [consumable],
-            date_format=args["date_format"],
-        )
+        consumables_list = ConsumableList([consumable], date_format=date_format)
         return str(consumables_list)
 
     @classmethod
-    def list(cls, args: ConsumableListCommandArguments) -> str:
-        consumables = ConsumableHandler.find(**args["where"])
+    def list(
+        cls,
+        *,
+        date_format: str,
+        order_key: StrEnum,
+        reverse: bool,
+        where: WhereMapping,
+        **_: Any,
+    ) -> str:
+        consumables = ConsumableHandler.find(**where)
 
-        consumables_list = ConsumableList(
-            consumables,
-            args["order_key"],
-            args["reverse"],
-            args["date_format"],
-        )
+        consumables_list = ConsumableList(consumables, order_key, reverse, date_format)
         return str(consumables_list)
 
     @classmethod
-    def update(cls, args: ConsumableUpdateCommandArguments) -> str:
-        # TODO: What if no values to set are provided?
-        # TODO: Confirm update for multiple hits
+    def update(
+        cls,
+        *,
+        force: bool,
+        date_format: str,
+        order_key: StrEnum,
+        reverse: bool,
+        where: WhereMapping,
+        apply: ConsumableApplyMapping,
+        **_: Any,
+    ) -> str:
+        if len(apply) == 0:
+            return "No updates specified."
+
+        if not force:
+            consumables = len(ConsumableHandler.find(**where))
+            if consumables > 1 and not confirm_action(
+                f"update of {consumables} Consumables"
+            ):
+                return "Consumable update cancelled."
+
         # TODO: What happens if none are found
-        # TODO: Tagging
-        consumable_ids = ConsumableHandler.update(args["where"], args["apply"])
+        consumable_ids = ConsumableHandler.update(where, apply)
         consumables = ConsumableHandler.find_by_ids(consumable_ids)
 
-        consumables_list = ConsumableList(
-            consumables,
-            args["order_key"],
-            args["reverse"],
-            args["date_format"],
-        )
+        consumables_list = ConsumableList(consumables, order_key, reverse, date_format)
         return str(consumables_list)
 
     @classmethod
-    def delete(cls, args: WhereArguments) -> str:
-        # TODO: Confirm delete for multiple hits
-        consumables_deleted = ConsumableHandler.delete(**args["where"])
+    def delete(cls, *, force: bool, where: WhereMapping, **_: Any) -> str:
+        if not force:
+            existing = len(ConsumableHandler.find(**where))
+            if existing > 1:
+                print(f"{existing} Consumable{s(existing)} found.")
+                if not confirm_action("deletion"):
+                    return "Consumable deletion cancelled."
+
+        consumables_deleted = ConsumableHandler.delete(**where)
         return f"{consumables_deleted} Consumables deleted."
 
     @classmethod
-    def series(cls, args: ConsumableSeriesCommandArguments) -> str:
-        # TODO: Confirm series for multiple hits
-        series = SeriesHandler.find(**args["apply"])
-        series_id = series[0].id
+    def series(
+        cls,
+        *,
+        force: bool,
+        date_format: str,
+        order_key: StrEnum,
+        reverse: bool,
+        where: WhereMapping,
+        apply: WhereMapping,
+        **_: Any,
+    ) -> str:
+        existing_series = SeriesHandler.find(**apply)
+        selected_series = None
+
+        if not force and len(existing_series) > 1:
+            print(f"{len(existing_series)} matched Series.")
+            for series in existing_series:
+                if confirm_action(f"usage of [{series.id}] {series.name}"):
+                    selected_series = series
+                    break
+
+            if selected_series is None:
+                return "No Series selected."
+
+        selected_series = existing_series[0] if selected_series is None else selected_series
         consumables_ids = ConsumableHandler.update(
-            args["where"], {"series_id": ApplyQuery(series_id)}
+            where, {"series_id": ApplyQuery(selected_series.id)}
         )
         consuambles = ConsumableHandler.find_by_ids(consumables_ids)
 
-        consumables_list = ConsumableList(
-            consuambles,
-            args["order_key"],
-            args["reverse"],
-            args["date_format"],
-        )
+        consumables_list = ConsumableList(consuambles, order_key, reverse, date_format)
         return str(consumables_list)
 
     @classmethod
-    def personnel(cls, args: ConsumableChangePersonnelCommandArguments) -> str:
-        # TODO: Can we just create personnel if they don't exist?
+    def personnel(
+        cls,
+        *,
+        force: bool,
+        consumable_where: WhereMapping,
+        personnel_where: WhereMapping,
+        roles: Sequence[ApplyQuery[str]],
+        **_: Any,
+    ) -> str:
+        if not force:
+            consumables = len(ConsumableHandler.find(**consumable_where))
+            if consumables > 1 and not confirm_action(
+                f"change of Personnel for {consumables} Consumables"
+            ):
+                return "Consumable Personnel update cancelled."
+
+        # TODO: Just create Personnel if one doesn't exist?
         consumable_ids = ConsumableHandler.change_personnel(
-            args["consumable_where"], args["personnel_where"], args["roles"]
+            consumable_where, personnel_where, roles
         )
         consumables = ConsumableHandler.find_by_ids(consumable_ids)
 
         return "\n\n".join(
             [
-                c.name
+                f"[{c.type}] {c.name}"
                 + "\n"
                 + str(
                     PersonnelRoleList(
@@ -130,7 +166,7 @@ class ConsumableCommandHandler:
                                 ),
                                 ConsumableHandler.personnel(c.id),
                             )
-                        )
+                        ),
                     )
                 )
                 for c in consumables

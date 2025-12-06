@@ -144,7 +144,8 @@ class ConsumableChangePersonnelParser(ParserBase):
         # TODO: Force update
         parser.set_defaults(
             handler=ConsumableCommandHandler.personnel,
-            where=BetterNamespace(),
+            consumable_where=BetterNamespace(),
+            personnel_where=BetterNamespace(),
         )
         cls.consumable_fields(
             parser, "consumable_where.consumable", QueryType.WHERE, False, True
