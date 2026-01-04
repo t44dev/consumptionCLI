@@ -42,7 +42,6 @@ class ParserBase(ABC):
         prefix_commands: bool = False,
         id: bool = False,
     ):
-        # TODO: Tags?
         prefix = "consumable" if prefix_commands else ""
         short_prefix = prefix[0] if prefix_commands else ""
         group = parser.add_argument_group("consumables")

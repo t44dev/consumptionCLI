@@ -29,7 +29,7 @@ class SeriesParser(ParserBase):
             "-o",
             "--order",
             dest="order_key",
-            default=SeriesOrderKey.NAME,
+            default=SeriesOrderKey.RATING,
             type=closest_choice_index(
                 lambda i: SeriesList.order_keys()[i], SeriesList.order_keys()
             ),

@@ -33,7 +33,7 @@ from consumptioncli.display.lists import (
     ConsumableList,
     PersonnelRoleList,
 )
-from consumptioncli.display.types import EntityRoles
+from consumptioncli.display.types import ConsumableContainer, EntityRole
 from consumptioncli.display.views.ConsumableView import ConsumableView
 
 from .database import ConsumableHandler, PersonnelHandler, SeriesHandler
@@ -45,15 +45,17 @@ class ConsumableCommandHandler:
         cls, *, force: bool, date_format: str, new: ConsumableFieldsRequired, **_: Any
     ) -> str:
         if not force:
-            existing = len(ConsumableHandler.find(*consumable_required_to_where(new)))
+            existing = len(ConsumableHandler.find(**consumable_required_to_where(new)))
             if not confirm_existing(Consumable, existing):
                 return cancelled_new(Consumable)
 
         consumable_id = ConsumableHandler.new(**new)
-        consumable = ConsumableHandler.find_by_id(consumable_id)
+        consumable = consumable_container(
+            ConsumableHandler.find_by_id(consumable_id), include_personnel=False
+        )
 
-        consumables_list = ConsumableList([consumable], date_format=date_format)
-        return str(consumables_list)
+        consumable_view = ConsumableView(consumable, date_format=date_format)
+        return str(consumable_view)
 
     @classmethod
     def list(
@@ -65,9 +67,14 @@ class ConsumableCommandHandler:
         where: WhereMapping,
         **_: Any,
     ) -> str:
-        consumables = ConsumableHandler.find(**where)
+        consumables = [
+            consumable_container(c, include_personnel=False)
+            for c in ConsumableHandler.find(**where)
+        ]
 
-        consumables_list = ConsumableList(consumables, order_key, reverse, date_format)
+        consumables_list = ConsumableList(
+            consumables, order_key=order_key, reverse=reverse, date_format=date_format
+        )
         return str(consumables_list)
 
     @classmethod
@@ -91,9 +98,14 @@ class ConsumableCommandHandler:
                 return cancelled_update(Consumable)
 
         consumable_ids = ConsumableHandler.update(where, apply)
-        consumables = ConsumableHandler.find_by_ids(consumable_ids)
+        consumables = [
+            consumable_container(c, include_personnel=False)
+            for c in ConsumableHandler.find_by_ids(consumable_ids)
+        ]
 
-        consumables_list = ConsumableList(consumables, order_key, reverse, date_format)
+        consumables_list = ConsumableList(
+            consumables, order_key=order_key, reverse=reverse, date_format=date_format
+        )
         return str(consumables_list)
 
     @classmethod
@@ -133,9 +145,14 @@ class ConsumableCommandHandler:
         consumables_ids = ConsumableHandler.update(
             where, {"series_id": ApplyQuery(selected_series.id)}
         )
-        consuambles = ConsumableHandler.find_by_ids(consumables_ids)
+        consumables = [
+            consumable_container(c, include_personnel=False)
+            for c in ConsumableHandler.find_by_ids(consumables_ids)
+        ]
 
-        consumables_list = ConsumableList(consuambles, order_key, reverse, date_format)
+        consumables_list = ConsumableList(
+            consumables, order_key=order_key, reverse=reverse, date_format=date_format
+        )
         return str(consumables_list)
 
     @classmethod
@@ -167,14 +184,11 @@ class ConsumableCommandHandler:
                 + "\n"
                 + str(
                     PersonnelRoleList(
-                        list(
-                            map(
-                                lambda ir: EntityRoles(
-                                    PersonnelHandler.find_by_id(ir.id), ir.roles
-                                ),
-                                ConsumableHandler.personnel(c.id),
-                            )
-                        ),
+                        [
+                            EntityRole(PersonnelHandler.find_by_id(irs.id), role)
+                            for irs in ConsumableHandler.personnel(c.id)
+                            for role in irs.roles
+                        ]
                     )
                 )
                 for c in consumables
@@ -194,20 +208,30 @@ class ConsumableCommandHandler:
         if len(consumables) == 0:
             return no_matching(Consumable)
 
-        if not force:
-            selected_consumable = select_one(consumables)
-        else:
-            selected_consumable = consumables[0]
-
+        selected_consumable = select_one(consumables) if not force else consumables[0]
         if selected_consumable is None:
             return none_selected(Consumable)
 
-        series = SeriesHandler.find_by_id(selected_consumable.series_id)
-        personnel = list(
-            map(
-                lambda ir: EntityRoles(PersonnelHandler.find_by_id(ir.id), ir.roles),
-                ConsumableHandler.personnel(selected_consumable.id),
-            )
-        )
+        consumable = consumable_container(selected_consumable)
 
-        return str(ConsumableView(selected_consumable, series, personnel, date_format))
+        consumable_view = ConsumableView(consumable, date_format)
+        return str(consumable_view)
+
+
+def consumable_container(
+    consumable: Consumable,
+    *,
+    include_series: bool = True,
+    include_personnel: bool = True,
+) -> ConsumableContainer:
+    return ConsumableContainer(
+        consumable,
+        ConsumableHandler.series(consumable.id) if include_series else None,
+        [
+            EntityRole(PersonnelHandler.find_by_id(irs.id), role)
+            for irs in ConsumableHandler.personnel(consumable.id)
+            for role in irs.roles
+        ]
+        if include_personnel
+        else None,
+    )

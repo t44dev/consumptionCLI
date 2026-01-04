@@ -26,6 +26,7 @@ from consumptioncli.commands.messages import (
     update_many,
 )
 from consumptioncli.display.lists import SeriesList
+from consumptioncli.display.types import SeriesContainer
 from consumptioncli.display.views import SeriesView
 
 from .database import SeriesHandler
@@ -33,25 +34,38 @@ from .database import SeriesHandler
 
 class SeriesCommandHandler:
     @classmethod
-    def new(cls, *, force: bool, new: SeriesFieldsRequired, **_: Any) -> str:
+    def new(
+        cls, *, force: bool, date_format: str, new: SeriesFieldsRequired, **_: Any
+    ) -> str:
         if not force:
-            existing = len(SeriesHandler.find(*series_required_to_where(new)))
+            existing = len(SeriesHandler.find(**series_required_to_where(new)))
+
             if not confirm_existing(Series, existing):
                 return cancelled_new(Series)
 
         series_id = SeriesHandler.new(**new)
-        series = SeriesHandler.find_by_id(series_id)
+        series = series_container(
+            SeriesHandler.find_by_id(series_id), include_consumables=False
+        )
 
-        series_list = SeriesList([series])
-        return str(series_list)
+        series_view = SeriesView(series, date_format)
+        return str(series_view)
 
     @classmethod
     def list(
-        cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_: Any
+        cls,
+        *,
+        order_key: StrEnum,
+        reverse: bool,
+        date_format: str,
+        where: WhereMapping,
+        **_: Any,
     ) -> str:
-        series = SeriesHandler.find(**where)
+        series = [series_container(s) for s in SeriesHandler.find(**where)]
 
-        series_list = SeriesList(series, order_key, reverse)
+        series_list = SeriesList(
+            series, order_key=order_key, reverse=reverse, date_format=date_format
+        )
         return str(series_list)
 
     @classmethod
@@ -61,6 +75,7 @@ class SeriesCommandHandler:
         force: bool,
         order_key: StrEnum,
         reverse: bool,
+        date_format: str,
         where: WhereMapping,
         apply: SeriesApplyMapping,
         **_: Any,
@@ -74,9 +89,10 @@ class SeriesCommandHandler:
                 return cancelled_update(Series)
 
         series_ids = SeriesHandler.update(where, apply)
-        series = SeriesHandler.find_by_ids(series_ids)
 
-        series_list = SeriesList(series, order_key, reverse)
+        series = [series_container(s) for s in SeriesHandler.find_by_ids(series_ids)]
+
+        series_list = SeriesList(series, order_key=order_key, reverse=reverse, date_format=date_format)
         return str(series_list)
 
     @classmethod
@@ -94,6 +110,7 @@ class SeriesCommandHandler:
         cls,
         *,
         force: bool,
+        date_format: str,
         where: WhereMapping,
         **_: Any,
     ) -> str:
@@ -101,14 +118,20 @@ class SeriesCommandHandler:
         if len(series) == 0:
             return no_matching(Series)
 
-        if not force:
-            selected_series = select_one(series)
-        else:
-            selected_series = series[0]
+        selected_series = select_one(series) if not force else series[0]
 
         if selected_series is None:
             return none_selected(Series)
 
-        consumables = SeriesHandler.consumables(selected_series.id)
+        series = series_container(selected_series)
 
-        return str(SeriesView(selected_series, consumables))
+        series_view = SeriesView(series, date_format=date_format)
+        return str(series_view)
+
+
+def series_container(
+    series: Series, *, include_consumables: bool = True
+) -> SeriesContainer:
+    return SeriesContainer(
+        series, SeriesHandler.consumables(series.id) if include_consumables else None
+    )

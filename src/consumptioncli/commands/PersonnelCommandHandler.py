@@ -26,7 +26,7 @@ from consumptioncli.commands.messages import (
     update_many,
 )
 from consumptioncli.display.lists import PersonnelList
-from consumptioncli.display.types import EntityRoles
+from consumptioncli.display.types import EntityRole, PersonnelContainer
 from consumptioncli.display.views import PersonnelView
 
 from .database import ConsumableHandler, PersonnelHandler
@@ -34,25 +34,29 @@ from .database import ConsumableHandler, PersonnelHandler
 
 class PersonnelCommandHandler:
     @classmethod
-    def new(cls, *, force: bool, new: PersonnelFieldsRequired, **_: Any) -> str:
+    def new(
+        cls, *, force: bool, date_format: str, new: PersonnelFieldsRequired, **_: Any
+    ) -> str:
         if not force:
-            existing = len(PersonnelHandler.find(*personnel_required_to_where(new)))
+            existing = len(PersonnelHandler.find(**personnel_required_to_where(new)))
             if not confirm_existing(Personnel, existing):
                 return cancelled_new(Personnel)
 
         personnel_id = PersonnelHandler.new(**new)
-        personnel = PersonnelHandler.find_by_id(personnel_id)
+        personnel = personnel_container(
+            PersonnelHandler.find_by_id(personnel_id), include_consumables=False
+        )
 
-        personnel_list = PersonnelList([personnel])
-        return str(personnel_list)
+        personnel_view = PersonnelView(personnel, date_format=date_format)
+        return str(personnel_view)
 
     @classmethod
     def list(
         cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_: Any
     ) -> str:
-        personnel = PersonnelHandler.find(**where)
+        personnel = [personnel_container(p) for p in PersonnelHandler.find(**where)]
 
-        personnel_list = PersonnelList(personnel, order_key, reverse)
+        personnel_list = PersonnelList(personnel, order_key=order_key, reverse=reverse)
         return str(personnel_list)
 
     @classmethod
@@ -75,9 +79,11 @@ class PersonnelCommandHandler:
                 return cancelled_update(Personnel)
 
         personnel_ids = PersonnelHandler.update(where, apply)
-        personnel = PersonnelHandler.find_by_ids(personnel_ids)
+        personnel = [
+            personnel_container(p) for p in PersonnelHandler.find_by_ids(personnel_ids)
+        ]
 
-        personnel_list = PersonnelList(personnel, order_key, reverse)
+        personnel_list = PersonnelList(personnel, order_key=order_key, reverse=reverse)
         return str(personnel_list)
 
     @classmethod
@@ -103,19 +109,27 @@ class PersonnelCommandHandler:
         if len(personnel) == 0:
             return no_matching(Personnel)
 
-        if not force:
-            selected_personnel = select_one(personnel)
-        else:
-            selected_personnel = personnel[0]
+        selected_personnel = select_one(personnel) if not force else personnel[0]
 
         if selected_personnel is None:
             return none_selected(Personnel)
 
-        personnel = list(
-            map(
-                lambda ir: EntityRoles(ConsumableHandler.find_by_id(ir.id), ir.roles),
-                PersonnelHandler.consumables(selected_personnel.id),
-            )
-        )
+        personnel = personnel_container(selected_personnel)
 
-        return str(PersonnelView(selected_personnel, personnel, date_format))
+        personnel_view = PersonnelView(personnel, date_format)
+        return str(personnel_view)
+
+
+def personnel_container(
+    personnel: Personnel, *, include_consumables: bool = True
+) -> PersonnelContainer:
+    return PersonnelContainer(
+        personnel,
+        [
+            EntityRole(ConsumableHandler.find_by_id(irs.id), role)
+            for irs in PersonnelHandler.consumables(personnel.id)
+            for role in irs.roles
+        ]
+        if include_consumables
+        else None,
+    )

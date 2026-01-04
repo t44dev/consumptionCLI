@@ -14,26 +14,22 @@ from consumptioncli.display.stats import (
     total_max_parts,
     total_parts,
 )
+from consumptioncli.display.types import ConsumableContainer, SeriesContainer
 
 
 @dataclass(frozen=True)
 class SeriesView:
-    series: Series
-    consumables: Sequence[Consumable]
+    series: SeriesContainer
     date_format: str = DEFAULT_DATE_FORMAT
 
     @override
     def __str__(self) -> str:
-        return "\n\n".join(
-            map(
-                lambda x: "\n".join(x),
-                [
-                    self._header(self.series),
-                    self._stats(self.consumables, self.date_format),
-                    self._consumables(self.consumables, self.date_format),
-                ],
-            )
-        )
+        rows = [self._header(self.series.entity)]
+
+        if self.series.consumables:
+            rows.append(self._stats(self.series.consumables, self.date_format))
+
+        return "\n\n".join(map(lambda x: "\n".join(x), rows))
 
     @classmethod
     def _header(cls, s: Series) -> Sequence[str]:
@@ -45,15 +41,15 @@ class SeriesView:
             return []
 
         rating = average_rating(cs)
-        start_date = global_start_date(cs)
-        end_date = global_end_date(cs)
         parts = total_parts(cs)
         max_parts = total_max_parts(cs)
+        start_date = global_start_date(cs)
+        end_date = global_end_date(cs)
 
         return [
             f"Average Rating {q(rating)}",
-            f"{q(start_date, lambda x: x.strftime(date_format))} - {q(end_date, lambda x: x.strftime(date_format))}",
             f"{parts}/{q(max_parts)} Parts",
+            f"{q(start_date, lambda x: x.strftime(date_format))} - {q(end_date, lambda x: x.strftime(date_format))}",
         ]
 
     @classmethod
@@ -61,4 +57,12 @@ class SeriesView:
         if len(cs) == 0:
             return ["No Consumables assigned..."]
 
-        return ["Consumables:", str(ConsumableList(cs, date_format=date_format))]
+        return [
+            "Consumables:",
+            str(
+                ConsumableList(
+                    list(map(lambda x: ConsumableContainer(x), cs)),
+                    date_format=date_format,
+                )
+            ),
+        ]

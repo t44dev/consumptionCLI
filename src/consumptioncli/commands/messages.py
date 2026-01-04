@@ -18,7 +18,7 @@ NO_UPDATES = "No updates specified."
 def entity_to_str(entity: EntityBase) -> str:
     match entity:
         case Consumable():
-            return f"#{entity.id} {[entity.type]} {entity.name}"
+            return f"#{entity.id} [{entity.type}] {entity.name}"
         case Series():
             return f"#{entity.id} {entity.name}"
         case Personnel():

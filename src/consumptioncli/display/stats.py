@@ -10,6 +10,9 @@ def average_rating(consumables: Sequence[Consumable]) -> float | None:
 
 
 def global_start_date(consumables: Sequence[Consumable]) -> datetime | None:
+    if len(consumables) == 0:
+        return None
+
     return (
         min([c.start_date for c in consumables if c.start_date is not None])
         if any([c.start_date is not None for c in consumables])
@@ -18,6 +21,9 @@ def global_start_date(consumables: Sequence[Consumable]) -> datetime | None:
 
 
 def global_end_date(consumables: Sequence[Consumable]) -> datetime | None:
+    if len(consumables) == 0:
+        return None
+
     return (
         min([c.start_date for c in consumables if c.start_date is not None])
         if all([c.start_date is not None for c in consumables])

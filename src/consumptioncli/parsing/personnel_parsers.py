@@ -29,7 +29,7 @@ class PersonnelParser(ParserBase):
             "-o",
             "--order",
             dest="order_key",
-            default=PersonnelOrderKey.NAME,
+            default=PersonnelOrderKey.RATING,
             type=closest_choice_index(
                 lambda i: PersonnelList.order_keys()[i], PersonnelList.order_keys()
             ),

@@ -3,16 +3,17 @@ from collections.abc import Sequence
 from enum import StrEnum
 from typing import Any, override
 
-from consumptionbackend.entities import EntityBase
 from tabulate import tabulate
 
 from consumptioncli.display.formatting import s
+from consumptioncli.display.types import HasEntityProtocol
 
 
 class DisplayListBase[T](ABC):
     def __init__(
         self,
         elements: Sequence[T],
+        *,
         order_key: StrEnum,
         reverse: bool = False,
     ) -> None:
@@ -34,9 +35,8 @@ class DisplayListBase[T](ABC):
     @abstractmethod
     def order_keys(cls) -> Sequence[StrEnum]: ...
 
-    @classmethod
     @abstractmethod
-    def _headers(cls) -> Sequence[str]: ...
+    def _headers(self) -> Sequence[str]: ...
 
     @abstractmethod
     def _row(self, index: int, element: T) -> Sequence[Any]: ...
@@ -49,7 +49,7 @@ class DisplayListBase[T](ABC):
     @override
     def __str__(self) -> str:
         # TODO: Average row for numeric values?
-        headers = type(self)._headers()
+        headers = self._headers()
         rows = [self._row(i, e) for i, e in enumerate(self.elements)]
         # TODO: Table styles
         # TODO: Fork tabulate for footer line
@@ -63,17 +63,18 @@ class EntityOrderKey(StrEnum):
     ID = "id"
 
 
-class EntityList[E: EntityBase](DisplayListBase[E]):
+class EntityList[EC: HasEntityProtocol](DisplayListBase[EC]):
     def __init__(
         self,
-        entities: Sequence[E],
+        entities: Sequence[EC],
+        *,
         order_key: StrEnum = EntityOrderKey.INDEX,
         reverse: bool = False,
     ) -> None:
         super().__init__(
             entities,
-            order_key,
-            reverse,
+            order_key=order_key,
+            reverse=reverse,
         )
 
     @override
@@ -82,20 +83,21 @@ class EntityList[E: EntityBase](DisplayListBase[E]):
         return [EntityOrderKey.ID]
 
     @override
-    @classmethod
-    def _headers(cls) -> Sequence[str]:
+    def _headers(self) -> Sequence[str]:
         return ["#", "ID"]
 
     @override
-    def _row(self, index: int, element: E) -> Sequence[Any]:
-        return [index + 1, element.id]
+    def _row(self, index: int, element: EC) -> Sequence[Any]:
+        entity = element.entity
+        return [index + 1, entity.id]
 
     @override
     def _order_key_to_value(
-        self, index: int, element: E, order_key: StrEnum
+        self, index: int, element: EC, order_key: StrEnum
     ) -> Any | None:
+        entity = element.entity
         match order_key:
             case EntityOrderKey.ID:
-                return element.id
+                return entity.id
             case _:
                 return index

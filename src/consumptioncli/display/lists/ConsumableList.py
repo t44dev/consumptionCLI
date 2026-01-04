@@ -2,16 +2,16 @@ from collections.abc import Sequence
 from enum import StrEnum
 from typing import Any, final, override
 
-from consumptionbackend.entities import Consumable
-
 from consumptioncli.constants import DEFAULT_DATE_FORMAT
 from consumptioncli.display.formatting import q, truncate
+from consumptioncli.display.types import ConsumableContainer
 
 from .list_handling import EntityList
 
 
 class ConsumableOrderKey(StrEnum):
     TYPE = "type"
+    SERIES = "series"
     NAME = "name"
     PARTS = "parts"
     MAX_PARTS = "max_parts"
@@ -23,18 +23,19 @@ class ConsumableOrderKey(StrEnum):
 
 
 @final
-class ConsumableList(EntityList[Consumable]):
+class ConsumableList(EntityList[ConsumableContainer]):
     def __init__(
         self,
-        entities: Sequence[Consumable],
+        consumables: Sequence[ConsumableContainer],
+        *,
         order_key: StrEnum = ConsumableOrderKey.RATING,
         reverse: bool = False,
         date_format: str = DEFAULT_DATE_FORMAT,
     ) -> None:
         super().__init__(
-            entities,
-            order_key,
-            reverse,
+            consumables,
+            order_key=order_key,
+            reverse=reverse,
         )
         self.date_format = date_format
 
@@ -44,11 +45,13 @@ class ConsumableList(EntityList[Consumable]):
         return [*super().order_keys(), *list(ConsumableOrderKey)]
 
     @override
-    @classmethod
-    def _headers(cls) -> Sequence[str]:
-        return [
-            *super()._headers(),
-            "Type",
+    def _headers(self) -> Sequence[str]:
+        headers = [*super()._headers(), "Type"]
+
+        if any([c.series is not None for c in self.elements]):
+            headers.append("Series")
+
+        headers.extend([
             "Name",
             "Parts",
             "Rating",
@@ -56,48 +59,59 @@ class ConsumableList(EntityList[Consumable]):
             "Status",
             "Started",
             "Completed",
-        ]
+        ])
+
+        return headers
 
     @override
-    def _row(self, index: int, element: Consumable) -> Sequence[Any]:
+    def _row(self, index: int, element: ConsumableContainer) -> Sequence[Any]:
+        consumable = element.entity
+        row = [*super()._row(index, element), consumable.type]
+
+        if element.series is not None:
+            row.append(truncate(element.series.name))
+
         return [
-            *super()._row(index, element),
-            element.type,
-            truncate(element.name),
-            f"{element.parts}/{q(element.max_parts)}",
-            element.rating,
-            element.completions,
-            str(element.status),
-            element.start_date.strftime(self.date_format)
-            if element.start_date is not None
+            *row,
+            truncate(consumable.name),
+            f"{consumable.parts}/{q(consumable.max_parts)}",
+            consumable.rating,
+            consumable.completions,
+            str(consumable.status),
+            consumable.start_date.strftime(self.date_format)
+            if consumable.start_date is not None
             else "",
-            element.end_date.strftime(self.date_format)
-            if element.end_date is not None
+            consumable.end_date.strftime(self.date_format)
+            if consumable.end_date is not None
             else "",
         ]
 
     @override
     def _order_key_to_value(
-        self, index: int, element: Consumable, order_key: StrEnum
+        self, index: int, element: ConsumableContainer, order_key: StrEnum
     ) -> Any | None:
+        consumable = element.entity
         match order_key:
             case ConsumableOrderKey.TYPE:
-                return element.type
+                return consumable.type
+            case ConsumableOrderKey.SERIES:
+                if element.series is not None:
+                    return element.series.name
             case ConsumableOrderKey.NAME:
-                return element.name
+                return consumable.name
             case ConsumableOrderKey.PARTS:
-                return element.parts
+                return consumable.parts
             case ConsumableOrderKey.MAX_PARTS:
-                return element.max_parts
+                return consumable.max_parts
             case ConsumableOrderKey.RATING:
-                return element.rating
+                return consumable.rating
             case ConsumableOrderKey.COMPLETIONS:
-                return element.completions
+                return consumable.completions
             case ConsumableOrderKey.STATUS:
-                return element.status
+                return consumable.status
             case ConsumableOrderKey.STARTED:
-                return element.start_date
+                return consumable.start_date
             case ConsumableOrderKey.COMPLETED:
-                return element.end_date
+                return consumable.end_date
             case _:
                 return super()._order_key_to_value(index, element, order_key)

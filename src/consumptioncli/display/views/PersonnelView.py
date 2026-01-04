@@ -14,42 +14,37 @@ from consumptioncli.display.stats import (
     total_max_parts,
     total_parts,
 )
-from consumptioncli.display.types import EntityRoles
-from consumptioncli.utils import unique
+from consumptioncli.display.types import EntityRole, PersonnelContainer
 
 
 @dataclass(frozen=True)
 class PersonnelView:
-    personnel: Personnel
-    consumables: Sequence[EntityRoles[Consumable]]
+    personnel: PersonnelContainer
     date_format: str = DEFAULT_DATE_FORMAT
 
     @override
     def __str__(self) -> str:
-        return "\n\n".join(
-            map(
-                lambda x: "\n".join(x),
-                [
-                    self._header(self.personnel),
-                    self._stats(
-                        unique(
-                            lambda x, y: x.id == y.id,
-                            [c.entity for c in self.consumables],
-                        ),
-                        self.date_format,
-                    ),
-                    self._consumables(self.consumables),
-                ],
+        rows = [self._header(self.personnel.entity)]
+
+        if self.personnel.consumables is not None:
+            rows.append(
+                self._stats(
+                    self.personnel.unique_consumables(),
+                    self.date_format,
+                )
             )
-        )
+
+            rows.append(self._consumables(self.personnel.consumables))
+
+        return "\n\n".join(map(lambda x: "\n".join(x), rows))
 
     @classmethod
     def _header(cls, p: Personnel) -> Sequence[str]:
         return [f"#{p.id} {p.full_name()}"]
 
     @classmethod
-    def _stats(cls, cs: Sequence[Consumable], date_format: str) -> Sequence[str]:
-        if len(cs) == 0:
+    def _stats(cls, cs: Sequence[Consumable] | None, date_format: str) -> Sequence[str]:
+        if cs is None or len(cs) == 0:
             return []
 
         rating = average_rating(cs)
@@ -65,7 +60,7 @@ class PersonnelView:
         ]
 
     @classmethod
-    def _consumables(cls, c: Sequence[EntityRoles[Consumable]]) -> Sequence[str]:
+    def _consumables(cls, c: Sequence[EntityRole[Consumable]]) -> Sequence[str]:
         if len(c) == 0:
             return ["No Consumables assigned..."]
 

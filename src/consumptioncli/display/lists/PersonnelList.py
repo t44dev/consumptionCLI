@@ -5,27 +5,31 @@ from typing import Any, final, override
 from consumptionbackend.entities import Consumable, Personnel
 
 from consumptioncli.display.formatting import truncate
-from consumptioncli.display.types import EntityRoles
+from consumptioncli.display.stats import average_rating
+from consumptioncli.display.types import EntityRole, PersonnelContainer
 
-from .list_handling import DisplayListBase, EntityList
+from .list_handling import EntityList
 
 
 class PersonnelOrderKey(StrEnum):
     NAME = "name"
+    APPEARANCES = "appearances"
+    RATING = "rating"
 
 
 @final
-class PersonnelList(EntityList[Personnel]):
+class PersonnelList(EntityList[PersonnelContainer]):
     def __init__(
         self,
-        entities: Sequence[Personnel],
-        order_key: StrEnum = PersonnelOrderKey.NAME,
+        personnel: Sequence[PersonnelContainer],
+        *,
+        order_key: StrEnum = PersonnelOrderKey.RATING,
         reverse: bool = False,
     ) -> None:
         super().__init__(
-            entities,
-            order_key,
-            reverse,
+            personnel,
+            order_key=order_key,
+            reverse=reverse,
         )
 
     @override
@@ -34,22 +38,42 @@ class PersonnelList(EntityList[Personnel]):
         return [*super().order_keys(), *list(PersonnelOrderKey)]
 
     @override
-    @classmethod
-    def _headers(cls) -> Sequence[str]:
-        return [*super()._headers(), "Name"]
+    def _headers(self) -> Sequence[str]:
+        headers = [*super()._headers(), "Name"]
+
+        if any([p.consumables is not None for p in self.elements]):
+            headers.extend(["Appearances", "Average Rating"])
+
+        return headers
 
     @override
-    def _row(self, index: int, element: Personnel) -> Sequence[Any]:
-        # TODO: Consumable data i.e. average rating
-        return [*super()._row(index, element), element.full_name()]
+    def _row(self, index: int, element: PersonnelContainer) -> Sequence[Any]:
+        personnel = element.entity
+
+        row = [*super()._row(index, element), personnel.full_name()]
+
+        unique_consumables = element.unique_consumables()
+        if unique_consumables is not None:
+            row.extend([len(unique_consumables), average_rating(unique_consumables)])
+
+        return row
 
     @override
     def _order_key_to_value(
-        self, index: int, element: Personnel, order_key: StrEnum
+        self, index: int, element: PersonnelContainer, order_key: StrEnum
     ) -> Any | None:
+        personnel = element.entity
+        unique_consumables = element.unique_consumables()
+
         match order_key:
             case PersonnelOrderKey.NAME:
-                return element.full_name()
+                return personnel.full_name()
+            case PersonnelOrderKey.APPEARANCES:
+                if unique_consumables is not None:
+                    return len(unique_consumables)
+            case PersonnelOrderKey.RATING:
+                if unique_consumables is not None:
+                    return average_rating(unique_consumables)
             case _:
                 return super()._order_key_to_value(index, element, order_key)
 
@@ -60,43 +84,50 @@ class PersonnelRoleOrderKey(StrEnum):
 
 
 @final
-class PersonnelRoleList(DisplayListBase[tuple[Personnel, str]]):
+class PersonnelRoleList(EntityList[EntityRole[Personnel]]):
     def __init__(
         self,
-        entities: Sequence[EntityRoles[Personnel]],
+        personnel_roles: Sequence[EntityRole[Personnel]],
+        *,
         order_key: StrEnum = PersonnelRoleOrderKey.NAME,
         reverse: bool = False,
     ) -> None:
         super().__init__(
-            [(pr.entity, role) for pr in entities for role in pr.roles],
-            order_key,
-            reverse,
+            personnel_roles,
+            order_key=order_key,
+            reverse=reverse,
         )
 
     @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
-        return list(PersonnelRoleOrderKey)
+        return [*super().order_keys(), *list(PersonnelRoleOrderKey)]
 
     @override
-    @classmethod
-    def _headers(cls) -> Sequence[str]:
-        return ["Name", "Role"]
+    def _headers(self) -> Sequence[str]:
+        return [*super()._headers(), "Name", "Role"]
 
     @override
-    def _row(self, index: int, element: tuple[Personnel, str]) -> Sequence[Any]:
-        # TODO: Consumable data i.e. average rating
-        return [truncate(element[0].full_name()), truncate(element[1])]
+    def _row(self, index: int, element: EntityRole[Personnel]) -> Sequence[Any]:
+        personnel = element.entity
+        role = element.role
+        return [
+            *super()._row(index, element),
+            truncate(personnel.full_name()),
+            truncate(role),
+        ]
 
     @override
     def _order_key_to_value(
-        self, index: int, element: tuple[Personnel, str], order_key: StrEnum
+        self, index: int, element: EntityRole[Personnel], order_key: StrEnum
     ) -> Any | None:
+        personnel = element.entity
+        role = element.role
         match order_key:
             case PersonnelRoleOrderKey.NAME:
-                return element[0].full_name()
+                return personnel.full_name()
             case PersonnelRoleOrderKey.ROLE:
-                return element[1]
+                return role
             case _:
                 return index
 
@@ -108,43 +139,52 @@ class ConsumableRoleOrderKey(StrEnum):
 
 
 @final
-class ConsumableRoleList(DisplayListBase[tuple[Consumable, str]]):
+class ConsumableRoleList(EntityList[EntityRole[Consumable]]):
     def __init__(
         self,
-        entities: Sequence[EntityRoles[Consumable]],
+        consumable_roles: Sequence[EntityRole[Consumable]],
+        *,
         order_key: StrEnum = ConsumableRoleOrderKey.NAME,
         reverse: bool = False,
     ) -> None:
         super().__init__(
-            [(pr.entity, role) for pr in entities for role in pr.roles],
-            order_key,
-            reverse,
+            consumable_roles,
+            order_key=order_key,
+            reverse=reverse,
         )
 
     @override
     @classmethod
     def order_keys(cls) -> Sequence[StrEnum]:
-        return list(ConsumableRoleOrderKey)
+        return [*super().order_keys(), *list(ConsumableRoleOrderKey)]
 
     @override
-    @classmethod
-    def _headers(cls) -> Sequence[str]:
-        return ["Type", "Name", "Role"]
+    def _headers(self) -> Sequence[str]:
+        return [*super()._headers(), "Type", "Name", "Role"]
 
     @override
-    def _row(self, index: int, element: tuple[Consumable, str]) -> Sequence[Any]:
-        return [element[0].type, truncate(element[0].name), truncate(element[1])]
+    def _row(self, index: int, element: EntityRole[Consumable]) -> Sequence[Any]:
+        consumable = element.entity
+        role = element.role
+        return [
+            *super()._row(index, element),
+            consumable.type,
+            truncate(consumable.name),
+            truncate(role),
+        ]
 
     @override
     def _order_key_to_value(
-        self, index: int, element: tuple[Consumable, str], order_key: StrEnum
+        self, index: int, element: EntityRole[Consumable], order_key: StrEnum
     ) -> Any | None:
+        consumable = element.entity
+        role = element.role
         match order_key:
             case ConsumableRoleOrderKey.TYPE:
-                return element[0].type
+                return consumable.type
             case ConsumableRoleOrderKey.NAME:
-                return element[0].name
+                return consumable.name
             case ConsumableRoleOrderKey.ROLE:
-                return element[1]
+                return role
             case _:
                 return index
