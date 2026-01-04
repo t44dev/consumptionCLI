@@ -4,9 +4,10 @@ from typing import Any, final, override
 
 from consumptioncli.constants import DEFAULT_DATE_FORMAT
 from consumptioncli.display.formatting import q, truncate
+from consumptioncli.display.stats import average_rating, total_max_parts, total_parts
 from consumptioncli.display.types import ConsumableContainer
 
-from .list_handling import EntityList
+from .list_handling import NOT_APPLICABLE, EntityList
 
 
 class ConsumableOrderKey(StrEnum):
@@ -48,18 +49,20 @@ class ConsumableList(EntityList[ConsumableContainer]):
     def _headers(self) -> Sequence[str]:
         headers = [*super()._headers(), "Type"]
 
-        if any([c.series is not None for c in self.elements]):
+        if all([c.series is not None for c in self.elements]):
             headers.append("Series")
 
-        headers.extend([
-            "Name",
-            "Parts",
-            "Rating",
-            "Completions",
-            "Status",
-            "Started",
-            "Completed",
-        ])
+        headers.extend(
+            [
+                "Name",
+                "Parts",
+                "Rating",
+                "Completions",
+                "Status",
+                "Started",
+                "Completed",
+            ]
+        )
 
         return headers
 
@@ -85,6 +88,33 @@ class ConsumableList(EntityList[ConsumableContainer]):
             if consumable.end_date is not None
             else "",
         ]
+
+    @override
+    def _footer(self) -> Sequence[Any]:
+        consumables = [c.entity for c in self.elements]
+        parts = total_parts(consumables)
+        max_parts = total_max_parts(consumables)
+        rating = average_rating(consumables)
+        completions = sum([c.completions for c in consumables])
+
+        footer = [*super()._footer(), NOT_APPLICABLE]
+
+        if all([c.series is not None for c in self.elements]):
+            footer.append(NOT_APPLICABLE)
+
+        footer.extend(
+            [
+                NOT_APPLICABLE,
+                f"{parts}/{q(max_parts)}",
+                rating,
+                completions,
+                NOT_APPLICABLE,
+                NOT_APPLICABLE,
+                NOT_APPLICABLE,
+            ]
+        )
+
+        return footer
 
     @override
     def _order_key_to_value(

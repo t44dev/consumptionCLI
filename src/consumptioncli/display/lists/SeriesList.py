@@ -13,7 +13,7 @@ from consumptioncli.display.stats import (
 )
 from consumptioncli.display.types import SeriesContainer
 
-from .list_handling import EntityList
+from .list_handling import NOT_APPLICABLE, EntityList
 
 
 class SeriesOrderKey(StrEnum):
@@ -53,7 +53,7 @@ class SeriesList(EntityList[SeriesContainer]):
     def _headers(self) -> Sequence[str]:
         headers = [*super()._headers(), "Name"]
 
-        if any([s.consumables is not None for s in self.elements]):
+        if all([s.consumables is not None for s in self.elements]):
             headers.extend(
                 [
                     "Entries",
@@ -94,6 +94,35 @@ class SeriesList(EntityList[SeriesContainer]):
             )
 
         return row
+
+    @override
+    def _footer(self) -> Sequence[Any]:
+        footer = [*super()._footer(), NOT_APPLICABLE]
+
+        if all([s.consumables is not None for s in self.elements]):
+            consumables = [
+                c
+                for s in self.elements
+                if s.consumables is not None
+                for c in s.consumables
+            ]
+            parts = total_parts(consumables)
+            max_parts = total_max_parts(consumables)
+            average_ratings = average_rating(consumables)
+            completions = sum([c.completions for c in consumables])
+
+            footer.extend(
+                [
+                    NOT_APPLICABLE,
+                    average_ratings,
+                    f"{parts}/{q(max_parts)}",
+                    completions,
+                    NOT_APPLICABLE,
+                    NOT_APPLICABLE,
+                ]
+            )
+
+        return footer
 
     @override
     def _order_key_to_value(

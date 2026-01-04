@@ -8,7 +8,7 @@ from consumptioncli.display.formatting import truncate
 from consumptioncli.display.stats import average_rating
 from consumptioncli.display.types import EntityRole, PersonnelContainer
 
-from .list_handling import EntityList
+from .list_handling import NOT_APPLICABLE, EntityList
 
 
 class PersonnelOrderKey(StrEnum):
@@ -41,7 +41,7 @@ class PersonnelList(EntityList[PersonnelContainer]):
     def _headers(self) -> Sequence[str]:
         headers = [*super()._headers(), "Name"]
 
-        if any([p.consumables is not None for p in self.elements]):
+        if all([p.consumables is not None for p in self.elements]):
             headers.extend(["Appearances", "Average Rating"])
 
         return headers
@@ -57,6 +57,31 @@ class PersonnelList(EntityList[PersonnelContainer]):
             row.extend([len(unique_consumables), average_rating(unique_consumables)])
 
         return row
+
+    @override
+    def _footer(self) -> Sequence[Any]:
+        footer = [*super()._footer(), NOT_APPLICABLE]
+
+        if all([p.consumables is not None for p in self.elements]):
+            unique_consumables = [p.unique_consumables() for p in self.elements]
+            appearances = sum([len(uq) for uq in unique_consumables if uq is not None])
+            average_ratings = [
+                r
+                for r in [
+                    average_rating(uc) for uc in unique_consumables if uc is not None
+                ]
+                if r is not None
+            ]
+            average_average_ratings = sum(average_ratings) / len(average_ratings)
+
+            footer.extend(
+                [
+                    appearances,
+                    average_average_ratings if len(average_ratings) > 0 else None,
+                ]
+            )
+
+        return footer
 
     @override
     def _order_key_to_value(

@@ -8,6 +8,8 @@ from tabulate import tabulate
 from consumptioncli.display.formatting import s
 from consumptioncli.display.types import HasEntityProtocol
 
+NOT_APPLICABLE = "-"
+
 
 class DisplayListBase[T](ABC):
     def __init__(
@@ -41,6 +43,9 @@ class DisplayListBase[T](ABC):
     @abstractmethod
     def _row(self, index: int, element: T) -> Sequence[Any]: ...
 
+    def _footer(self) -> Sequence[Any]:
+        return []
+
     @abstractmethod
     def _order_key_to_value(
         self, index: int, element: T, order_key: StrEnum
@@ -48,14 +53,21 @@ class DisplayListBase[T](ABC):
 
     @override
     def __str__(self) -> str:
-        # TODO: Average row for numeric values?
         headers = self._headers()
-        rows = [self._row(i, e) for i, e in enumerate(self.elements)]
+        rows = [
+            *[self._row(i, e) for i, e in enumerate(self.elements)],
+        ]
+        count = len(rows)
+
+        footer = self._footer()
+        if len(footer) > 0:
+            rows.append(footer)
+
         # TODO: Table styles
-        # TODO: Fork tabulate for footer line
+        # TODO: Fork tabulate for better footer line
         return (
-            tabulate(rows, headers) + "\n" if len(rows) > 0 else ""
-        ) + f"{len(rows)} Result{s(len(rows))}..."
+            tabulate(rows, headers) + "\n" if count > 0 else ""
+        ) + f"{count} Result{s(len(rows))}..."
 
 
 class EntityOrderKey(StrEnum):
@@ -90,6 +102,10 @@ class EntityList[EC: HasEntityProtocol](DisplayListBase[EC]):
     def _row(self, index: int, element: EC) -> Sequence[Any]:
         entity = element.entity
         return [index + 1, entity.id]
+
+    @override
+    def _footer(self) -> Sequence[Any]:
+        return [NOT_APPLICABLE, NOT_APPLICABLE]
 
     @override
     def _order_key_to_value(
