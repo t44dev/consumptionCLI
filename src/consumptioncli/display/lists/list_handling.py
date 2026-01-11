@@ -66,8 +66,8 @@ class DisplayListBase[T](ABC):
         # TODO: Table styles
         # TODO: Fork tabulate for better footer line
         return (
-            tabulate(rows, headers) + "\n" if count > 0 else ""
-        ) + f"{count} Result{s(len(rows))}..."
+            tabulate(rows, headers, floatfmt=".3g") + "\n" if count > 0 else ""
+        ) + f"{count} Result{s(count)}..."
 
 
 class EntityOrderKey(StrEnum):

@@ -169,7 +169,7 @@ class ConsumableChangePersonnelParser(ParserBase):
             parser_apply, "personnel_where.series", QueryType.WHERE, True, True
         )
         cls.personnel_fields(
-            parser_apply, "personnel_where.personnel", QueryType.WHERE, False, False
+            parser_apply, "personnel_where.personnel", QueryType.WHERE, False, True
         )
 
         _ = parser_apply.add_argument(

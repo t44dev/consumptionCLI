@@ -72,14 +72,13 @@ class PersonnelList(EntityList[PersonnelContainer]):
                 ]
                 if r is not None
             ]
-            average_average_ratings = sum(average_ratings) / len(average_ratings)
-
-            footer.extend(
-                [
-                    appearances,
-                    average_average_ratings if len(average_ratings) > 0 else None,
-                ]
+            average_average_ratings = (
+                (sum(average_ratings) / len(average_ratings))
+                if len(average_ratings) > 0
+                else None
             )
+
+            footer.extend([appearances, average_average_ratings])
 
         return footer
 
