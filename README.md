@@ -93,7 +93,7 @@ A primary reason for making an update would be to change the status of a *Consum
 $ cons consumable update --name 1984 apply --status IN_PROGRESS --parts 2
 #    ID    Type    Series    Name    Parts    Rating      Completions  Status       Started     Completed
 ---  ----  ------  --------  ------  -------  --------  -------------  -----------  ----------  -----------
-1    31    NOVEL   None      1984    2/?                            0  IN PROGRESS  2026/01/20
+1    31    NOVEL   None      1984    2/?                            0  IN PROGRESS  2026/01/27
 -    -     -       -         -       2/?                            0  -            -           -
 1 Result...
 ```

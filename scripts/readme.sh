@@ -31,6 +31,7 @@ printf '%s' "$block"
 
 export CONSUMPTION_CONFIG_DIR=.
 export CONSUMPTION_DATA_DIR=.
+export CONSUMPTION_LOG_DIR=.
 echo "> DEMO DB GENERATION START <"
 eval "$DEMO_DB"
 echo "> DEMO DB GENERATION END <"

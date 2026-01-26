@@ -1,12 +1,21 @@
 from argparse import ArgumentError
 from sys import exit, stderr
 
+from consumptionbackend.database.sqlite import register_sqlite_services
+from consumptionbackend.utils import ServiceProvider
 from consumptionbackend.utils.exceptions import NoValuesError
+
+from consumptioncli.config import ConfigService
 
 from .parsing import BetterNamespace, MainParser, post_process
 
 
 def main() -> int:
+    # Services
+    ServiceProvider.register(ConfigService, ConfigService())
+    register_sqlite_services(ServiceProvider.get(ConfigService).read()["db_path"])
+
+    # Parsing
     try:
         main_parser = MainParser.get()
         args = main_parser.parse_args(namespace=BetterNamespace())

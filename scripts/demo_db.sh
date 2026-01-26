@@ -3,12 +3,14 @@ set -Eeuo pipefail
 
 export CONSUMPTION_CONFIG_DIR=.
 export CONSUMPTION_DATA_DIR=.
+export CONSUMPTION_LOG_DIR=.
 C () {
     cons --force --dateformat "%Y-%m-%d%z" "$@"
 }
 
 if [ -f consumption.db ]; then
     rm consumption.db
+    rm config.json
 fi
 
 # Consumables

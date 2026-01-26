@@ -2,12 +2,15 @@ from enum import StrEnum
 from typing import Any
 
 from consumptionbackend.database import (
+    ConsumableService,
     PersonnelApplyMapping,
     PersonnelFieldsRequired,
+    PersonnelService,
     WhereMapping,
     personnel_required_to_where,
 )
 from consumptionbackend.entities import Personnel
+from consumptionbackend.utils import ServiceProvider
 
 from consumptioncli.commands.input import (
     confirm_existing,
@@ -29,22 +32,22 @@ from consumptioncli.display.lists import PersonnelList
 from consumptioncli.display.types import EntityRole, PersonnelContainer
 from consumptioncli.display.views import PersonnelView
 
-from .database import ConsumableHandler, PersonnelHandler
-
 
 class PersonnelCommandHandler:
     @classmethod
     def new(
         cls, *, force: bool, date_format: str, new: PersonnelFieldsRequired, **_: Any
     ) -> str:
+        personnel_service = ServiceProvider.get(PersonnelService)
+
         if not force:
-            existing = len(PersonnelHandler.find(**personnel_required_to_where(new)))
+            existing = len(personnel_service.find(**personnel_required_to_where(new)))
             if not confirm_existing(Personnel, existing):
                 return cancelled_new(Personnel)
 
-        personnel_id = PersonnelHandler.new(**new)
+        personnel_id = personnel_service.new(**new)
         personnel = personnel_container(
-            PersonnelHandler.find_by_id(personnel_id), include_consumables=False
+            personnel_service.find_by_id(personnel_id), include_consumables=False
         )
 
         personnel_view = PersonnelView(personnel, date_format=date_format)
@@ -54,7 +57,9 @@ class PersonnelCommandHandler:
     def list(
         cls, *, order_key: StrEnum, reverse: bool, where: WhereMapping, **_: Any
     ) -> str:
-        personnel = [personnel_container(p) for p in PersonnelHandler.find(**where)]
+        personnel_service = ServiceProvider.get(PersonnelService)
+
+        personnel = [personnel_container(p) for p in personnel_service.find(**where)]
 
         personnel_list = PersonnelList(personnel, order_key=order_key, reverse=reverse)
         return str(personnel_list)
@@ -73,14 +78,16 @@ class PersonnelCommandHandler:
         if len(apply) == 0:
             return NO_UPDATES
 
+        personnel_service = ServiceProvider.get(PersonnelService)
+
         if not force:
-            personnel = len(PersonnelHandler.find(**where))
+            personnel = len(personnel_service.find(**where))
             if not confirm_many(personnel, update_many(Personnel, personnel)):
                 return cancelled_update(Personnel)
 
-        personnel_ids = PersonnelHandler.update(where, apply)
+        personnel_ids = personnel_service.update(where, apply)
         personnel = [
-            personnel_container(p) for p in PersonnelHandler.find_by_ids(personnel_ids)
+            personnel_container(p) for p in personnel_service.find_by_ids(personnel_ids)
         ]
 
         personnel_list = PersonnelList(personnel, order_key=order_key, reverse=reverse)
@@ -88,12 +95,14 @@ class PersonnelCommandHandler:
 
     @classmethod
     def delete(cls, *, force: bool, where: WhereMapping, **_: Any) -> str:
+        personnel_service = ServiceProvider.get(PersonnelService)
+
         if not force:
-            personnel = len(PersonnelHandler.find(**where))
+            personnel = len(personnel_service.find(**where))
             if not confirm_many(personnel, delete_many(Personnel, personnel)):
                 return cancelled_deletion(Personnel)
 
-        personnel_deleted = PersonnelHandler.delete(**where)
+        personnel_deleted = personnel_service.delete(**where)
         return deleted(Personnel, personnel_deleted)
 
     @classmethod
@@ -105,7 +114,9 @@ class PersonnelCommandHandler:
         where: WhereMapping,
         **_: Any,
     ) -> str:
-        personnel = PersonnelHandler.find(**where)
+        personnel_service = ServiceProvider.get(PersonnelService)
+
+        personnel = personnel_service.find(**where)
         if len(personnel) == 0:
             return no_matching(Personnel)
 
@@ -123,11 +134,14 @@ class PersonnelCommandHandler:
 def personnel_container(
     personnel: Personnel, *, include_consumables: bool = True
 ) -> PersonnelContainer:
+    personnel_service = ServiceProvider.get(PersonnelService)
+    consumable_service = ServiceProvider.get(ConsumableService)
+
     return PersonnelContainer(
         personnel,
         [
-            EntityRole(ConsumableHandler.find_by_id(irs.id), role)
-            for irs in PersonnelHandler.consumables(personnel.id)
+            EntityRole(consumable_service.find_by_id(irs.id), role)
+            for irs in personnel_service.consumables(personnel.id)
             for role in irs.roles
         ]
         if include_consumables
