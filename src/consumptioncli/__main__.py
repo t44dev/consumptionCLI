@@ -6,6 +6,7 @@ from consumptionbackend.utils import ServiceProvider
 from consumptionbackend.utils.exceptions import NoValuesError
 
 from consumptioncli.config import ConfigService
+from consumptioncli.logging import setup_logging
 
 from .parsing import BetterNamespace, MainParser, post_process
 
@@ -14,6 +15,7 @@ def main() -> int:
     # Services
     ServiceProvider.register(ConfigService, ConfigService())
     register_sqlite_services(ServiceProvider.get(ConfigService).read()["db_path"])
+    setup_logging(ServiceProvider.get(ConfigService).read()["log_path"])
 
     # Parsing
     try:

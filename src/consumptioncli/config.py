@@ -5,16 +5,18 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from consumptionbackend.utils import ServiceBase
-from platformdirs import user_config_path, user_data_path
+from platformdirs import user_config_path, user_data_path, user_log_path
 
 from consumptioncli.utils import ExtendedEncoder
 
 CONSUMPTION_CONFIG_DIR = os.getenv("CONSUMPTION_CONFIG_DIR")
 CONSUMPTION_DATA_DIR = os.getenv("CONSUMPTION_DATA_DIR")
+CONSUMPTION_LOG_DIR = os.getenv("CONSUMPTION_LOG_DIR")
 
 
 class Config(TypedDict):
     db_path: Path
+    log_path: Path
 
 
 class ConfigService(ServiceBase):
@@ -29,7 +31,13 @@ class ConfigService(ServiceBase):
             if CONSUMPTION_DATA_DIR is None
             else Path(CONSUMPTION_DATA_DIR)
         )
-        / "consumption.db"
+        / "consumption.db",
+        "log_path": (
+            user_log_path() / "consumption"
+            if CONSUMPTION_LOG_DIR is None
+            else Path(CONSUMPTION_LOG_DIR)
+        )
+        / "consumption.log",
     }
 
     def __init__(self) -> None:
@@ -57,4 +65,5 @@ class ConfigService(ServiceBase):
     @classmethod
     def config_load_hook(cls, d: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
         d["db_path"] = Path(d["db_path"])
+        d["log_path"] = Path(d["log_path"])
         return d

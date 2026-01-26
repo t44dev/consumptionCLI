@@ -11,6 +11,7 @@ C () {
 if [ -f consumption.db ]; then
     rm consumption.db
     rm config.json
+    rm consumption.log
 fi
 
 # Consumables
