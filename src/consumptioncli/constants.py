@@ -1,0 +1,1 @@
+DEFAULT_DATE_FORMAT = r"%Y/%m/%d"
