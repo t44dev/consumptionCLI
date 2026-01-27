@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
-from collections.abc import Sequence
 
 from consumptionbackend.entities import Consumable, EntityBase, Personnel, Series
 
