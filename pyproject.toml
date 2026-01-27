@@ -1,8 +1,8 @@
 [project]
 name = "consumptioncli"
-version = "3.0.0"
+version = "3.0.1"
 authors = [
-  { name="track-44", email="trackfortyfour@proton.me" },
+  { name="track44", email="trackfortyfour@proton.me" },
 ]
 description = "A CLI tool for tracking consumption of media including Novels, Movies, TV Series and more."
 readme = "README.md"
@@ -18,7 +18,7 @@ classifiers = [
 ]
 dependencies = [
   "tabulate>=0.9.0",
-  "consumptionbackend~=3.0.0",
+  "consumptionbackend~=3.0.1",
   "platformdirs~=4.5.1",
 ]
 

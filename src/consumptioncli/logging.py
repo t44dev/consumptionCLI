@@ -23,6 +23,8 @@ class StructuredFormatter(logging.Formatter):
 
 
 def setup_logging(log_path: Path):
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
     # Backend Logging
     backend_handler = logging.FileHandler(log_path)
     backend_handler.setFormatter(StructuredFormatter())
