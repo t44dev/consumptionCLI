@@ -74,7 +74,7 @@ class ConsumableCommandHandler:
         consumable_service = ServiceProvider.get(ConsumableService)
 
         consumables = [
-            consumable_container(c, include_personnel=False)
+            consumable_container(c, include_personnel=False, include_tags=False)
             for c in consumable_service.find(**where)
         ]
 
@@ -107,7 +107,7 @@ class ConsumableCommandHandler:
 
         consumable_ids = consumable_service.update(where, apply)
         consumables = [
-            consumable_container(c, include_personnel=False)
+            consumable_container(c, include_personnel=False, include_tags=False)
             for c in consumable_service.find_by_ids(consumable_ids)
         ]
 
@@ -159,7 +159,7 @@ class ConsumableCommandHandler:
             where, {"series_id": ApplyQuery(selected_series.id)}
         )
         consumables = [
-            consumable_container(c, include_personnel=False)
+            consumable_container(c, include_personnel=False, include_tags=False)
             for c in consumable_service.find_by_ids(consumables_ids)
         ]
 
@@ -241,6 +241,7 @@ def consumable_container(
     *,
     include_series: bool = True,
     include_personnel: bool = True,
+    include_tags: bool = True,
 ) -> ConsumableContainer:
     consumable_service = ServiceProvider.get(ConsumableService)
     personnel_service = ServiceProvider.get(PersonnelService)
@@ -255,4 +256,5 @@ def consumable_container(
         ]
         if include_personnel
         else None,
+        consumable_service.tags(consumable.id) if include_tags else None,
     )

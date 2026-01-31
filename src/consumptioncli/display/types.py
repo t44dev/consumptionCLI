@@ -26,6 +26,7 @@ class EntityRole[E: EntityBase](EntityContainer[E]):
 class ConsumableContainer(EntityContainer[Consumable]):
     series: Series | None = None
     personnel: Sequence[EntityRole[Personnel]] | None = None
+    tags: Sequence[str] | None = None
 
 
 @dataclass(frozen=True)
