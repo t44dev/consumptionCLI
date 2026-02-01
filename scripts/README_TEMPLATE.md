@@ -45,7 +45,7 @@ $ pip install .
 
 ## Basic Usage
 
-**ConsumptionCLI** includes 3 different entities:
+**ConsumptionCLI** includes 3 primary entities:
 - *Consumables* - Main entity type and are intended to represent Movies, TV Shows, Novels, etc.
 - *Series* - Secondary entity. Each *Consumable* can be affiliated with one of these. Intended to represent an entire series, for example if a TV Show has multiple seasons each season may be represented with its own *Consumable* and all of these *Consumables* may be attached to the same *Series*.
 - *Personnel* - Secondary entity. Can be affiliated with *Consumables* along with some role such as Author, Illustrator, Director, etc.
