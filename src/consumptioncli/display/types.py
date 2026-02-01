@@ -44,3 +44,9 @@ class PersonnelContainer(EntityContainer[Personnel]):
 @dataclass(frozen=True)
 class SeriesContainer(EntityContainer[Series]):
     consumables: Sequence[Consumable] | None = None
+
+
+@dataclass(frozen=True)
+class TagContainer:
+    tag: str
+    consumables: Sequence[Consumable] | None = None

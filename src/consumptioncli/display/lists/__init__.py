@@ -9,11 +9,13 @@ from .PersonnelList import (
     PersonnelRoleOrderKey,
 )
 from .SeriesList import SeriesList, SeriesOrderKey
+from .TagList import TagList
 
 __all__ = [
     "EntityList",
     "ConsumableList",
     "SeriesList",
+    "TagList",
     "PersonnelList",
     "PersonnelRoleList",
     "ConsumableRoleList",
