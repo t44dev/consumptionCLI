@@ -46,7 +46,7 @@ $ pip install .
 
 ## Basic Usage
 
-**ConsumptionCLI** includes 3 different entities:
+**ConsumptionCLI** includes 3 primary entities:
 - *Consumables* - Main entity type and are intended to represent Movies, TV Shows, Novels, etc.
 - *Series* - Secondary entity. Each *Consumable* can be affiliated with one of these. Intended to represent an entire series, for example if a TV Show has multiple seasons each season may be represented with its own *Consumable* and all of these *Consumables* may be attached to the same *Series*.
 - *Personnel* - Secondary entity. Can be affiliated with *Consumables* along with some role such as Author, Illustrator, Director, etc.
@@ -64,6 +64,8 @@ Series: None
 
 0 Completions
 PLANNING - 0/? Parts
+
+No tags...
 ```
 
 On creation a view containing the values associated with the new entity is displayed. Each of these displayed fields can be adjusted manually using the appropriate options (e.g. `--rating NUMBER`). 
@@ -81,6 +83,8 @@ Series: None
 
 0 Completions
 PLANNING - 0/? Parts
+
+No tags...
 ```
 
 ### Update
@@ -93,7 +97,7 @@ A primary reason for making an update would be to change the status of a *Consum
 $ cons consumable update --name 1984 apply --status IN_PROGRESS --parts 2
 #    ID    Type    Series    Name    Parts    Rating      Completions  Status       Started     Completed
 ---  ----  ------  --------  ------  -------  --------  -------------  -----------  ----------  -----------
-1    31    NOVEL   None      1984    2/?                            0  IN PROGRESS  2026/01/27
+1    31    NOVEL   None      1984    2/?                            0  IN PROGRESS  2026/02/01
 -    -     -       -         -       2/?                            0  -            -           -
 1 Result...
 ```
@@ -233,6 +237,8 @@ Series: A Tale of Two Cities
 
 0 Completions
 PLANNING - 0/45 Parts
+
+Tags: history, yor1859
 
 Personnel:
 #    ID    Name             Role

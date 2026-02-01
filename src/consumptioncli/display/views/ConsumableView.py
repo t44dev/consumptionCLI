@@ -22,6 +22,9 @@ class ConsumableView:
             self._stats(self.consumable.entity, self.date_format),
         ]
 
+        if self.consumable.tags is not None:
+            rows.append(self._tags(self.consumable.tags))
+
         if self.consumable.personnel is not None:
             rows.append(self._personnel(self.consumable.personnel))
 
@@ -49,6 +52,13 @@ class ConsumableView:
         ]
 
         return [section for section in sections if section is not None]
+
+    @classmethod
+    def _tags(cls, tags: Sequence[str]) -> Sequence[str]:
+        if len(tags) == 0:
+            return ["No tags..."]
+
+        return [f"Tags: {', '.join(tags)}"]
 
     @classmethod
     def _personnel(cls, p: Sequence[EntityRole[Personnel]]) -> Sequence[str]:

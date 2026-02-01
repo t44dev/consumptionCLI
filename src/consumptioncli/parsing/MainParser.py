@@ -8,6 +8,7 @@ from .consumable_parsers import ConsumableParser
 from .parsing import ParserBase
 from .personnel_parsers import PersonnelParser
 from .series_parsers import SeriesParser
+from .tag_parsers import TagParser
 
 
 class MainParser(ParserBase):
@@ -45,3 +46,4 @@ class MainParser(ParserBase):
         ConsumableParser.setup(sub.add_parser("consumable", aliases=["c"]))
         SeriesParser.setup(sub.add_parser("series", aliases=["s"]))
         PersonnelParser.setup(sub.add_parser("personnel", aliases=["p"]))
+        TagParser.setup(sub.add_parser("tag", aliases=["t"]))
